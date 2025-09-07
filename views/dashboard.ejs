@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResQverse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <style>
+    /* =============================
+       Design System & Theme Tokens
+       ============================= */
+    :root {
+      --font-body: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      --font-display: 'Inter', 'Roboto', system-ui, sans-serif;
+
+      --radius-sm: 6px;
+      --radius-md: 14px;
+      --radius-lg: 18px;
+      --ease: cubic-bezier(.4,0,.2,1);
+      --dur-fast: 120ms;
+      --dur: 160ms;
+      --dur-slow: 260ms;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 12px -2px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.08);
+      --shadow-lg: 0 12px 28px -6px rgba(0,0,0,.28), 0 4px 8px rgba(0,0,0,.18);
+
+      /* Light Theme */
+      --bg: #f5f7fa;
+      --bg-alt: #eef2f6;
+      --surface: #ffffff;
+      --surface-alt: #f9fbfd;
+      --border: #d9e1ea;
+      --border-strong: #b9c4cf;
+      --text: #12161c;
+      --text-soft: #4b5563;
+      --text-faint: #6b7280;
+      --accent: #6366f1;
+      --accent-hover: #5558e6;
+      --focus-ring: 0 0 0 3px rgba(99,102,241,.35);
+
+      /* Disaster Semantic Colors */
+      --fire: #ef4444;
+      --quake: #f59e0b;
+      --flood: #0ea5e9;
+      --pandemic: #10b981;
+      --cyclone: #6366f1;
+
+      --gradient-warm: linear-gradient(135deg,#f59e0b,#ef4444);
+      --gradient-cool: linear-gradient(135deg,#0ea5e9,#6366f1);
+
+      color-scheme: light;
+    }
+
+    html[data-theme='dark'] {
+      --bg: #12161c;
+      --bg-alt: #1a222a;
+      --surface: #1c232b;
+      --surface-alt: #232d37;
+      --border: #27323d;
+      --border-strong: #3a4a56;
+      --text: #f5f7fa;
+      --text-soft: #d1d5db;
+      --text-faint: #9ca3af;
+      --accent: #818cf8;
+      --accent-hover: #6d78f4;
+      --focus-ring: 0 0 0 3px rgba(129,140,248,.4);
+      color-scheme: dark;
+    }
+
+    /* Base Reset */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin:0; font-family: var(--font-body); background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+      display:flex; flex-direction:column; min-height:100vh; overflow-x:hidden;
+    }
+
+    :focus { outline:none; }
+    :focus-visible { box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+
+    /* Layout Regions */
+    .app-header { display:flex; align-items:center; justify-content:space-between; padding: .75rem 1.25rem; background: var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:20; }
+    .logo-block { display:flex; align-items:center; gap:.75rem; }
+    .logo-mark { width:40px; height:40px; background:var(--gradient-cool); display:grid; place-items:center; font-size:1.15rem; border-radius: 12px; color:#fff; box-shadow: var(--shadow-sm); }
+    .app-title { font-family: var(--font-display); font-size:1.25rem; font-weight:600; letter-spacing:.5px; margin:0; }
+    .utility-nav { display:flex; gap:.75rem; align-items:center; position: relative; }
+
+    .layout { width:100%; max-width:1400px; margin:1.2rem auto 2.5rem; padding:0 1.5rem; display:grid; gap:2.4rem; }
+    .section-title { margin:0 0 1rem; font-size:1rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-faint); }
+    .games-grid { display:grid; gap:1.3rem; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); }
+    .game-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg); padding:1.1rem 1.1rem 1.25rem; display:flex; flex-direction:column; gap:.65rem; position:relative; overflow:hidden; box-shadow: var(--shadow-sm); transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+    .game-card::after { content:""; position:absolute; inset:0; background:linear-gradient(160deg,rgba(99,102,241,.12),transparent 55%); opacity:0; transition:opacity var(--dur) var(--ease); }
+    .game-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--accent); }
+    .game-card:hover::after { opacity:1; }
+    .icon-wrap { width:56px; height:56px; background: var(--surface-alt); border:1px solid var(--border); display:grid; place-items:center; font-size:1.75rem; border-radius: 16px; box-shadow: var(--shadow-sm); }
+    .game-card h3 { margin:.25rem 0 0; font:600 .95rem/1.2 var(--font-display); }
+    .blurb { margin:0; font-size:.75rem; line-height:1.35; color: var(--text-soft); }
+
+    .modules-grid { display:grid; gap:1.15rem; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); }
+    .module-card { --ring: var(--border); background: var(--surface); border:1px solid var(--ring); border-radius: var(--radius-md); padding: .95rem .9rem 1.05rem; display:flex; flex-direction:column; gap:.55rem; position:relative; overflow:hidden; cursor:pointer; box-shadow: var(--shadow-sm); transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+    .module-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .module-card:active { transform: translateY(-2px); }
+    .color-bar { position:absolute; inset:0; background: linear-gradient(120deg,var(--c1),var(--c2)); opacity:.18; mix-blend-mode: plus-lighter; pointer-events:none; }
+    .module-icon { width:44px; height:44px; display:grid; place-items:center; font-size:1.4rem; background: var(--surface-alt); border:1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); }
+    .module-title { margin:.2rem 0 0; font:600 .85rem/1.2 var(--font-display); letter-spacing:.3px; }
+    .module-desc { margin:0; font-size:.68rem; line-height:1.3; color: var(--text-soft); }
+    .open-btn { align-self:start; margin-top:auto; }
+
+    /* Footer */
+    .app-footer { margin-top:auto; padding:1.2rem 1.25rem 2rem; background: var(--surface); border-top:1px solid var(--border); display:flex; flex-direction:column; gap:1rem; align-items:center; }
+    .quick-links { display:flex; gap:.6rem; flex-wrap:wrap; }
+
+    /* Buttons */
+    .primary-btn, .secondary-btn, .ghost-btn, .text-btn, .pill { font:500 .72rem/1 var(--font-display); letter-spacing:.04em; border-radius: var(--radius-sm); cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; position:relative; white-space:nowrap; }
+    .secondary-btn.small { padding:.45rem .6rem; font-size:.62rem; }
+    .primary-btn { background: var(--accent); color:#fff; border:1px solid var(--accent); padding:.75rem 1rem; box-shadow: var(--shadow-sm); transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+    .primary-btn:hover { background: var(--accent-hover); }
+    .secondary-btn { background: var(--surface-alt); color: var(--text); border:1px solid var(--border); padding:.65rem .9rem; }
+    .secondary-btn:hover { border-color: var(--accent); }
+    .ghost-btn { background: transparent; border:1px solid var(--border); padding:.55rem .75rem; color: var(--text-soft); }
+    .ghost-btn:hover { color: var(--text); border-color: var(--accent); }
+    .text-btn { background:transparent; border:1px solid transparent; padding:.45rem .65rem; color: var(--text-soft); }
+    .text-btn:hover { color: var(--text); }
+    .pill { background: var(--surface-alt); border:1px solid var(--border); padding:.55rem .85rem; font-size:.65rem; }
+    .pill:hover { border-color: var(--accent); }
+    .avatar { width:40px; height:40px; background: var(--surface-alt); border:1px solid var(--border); border-radius:50%; display:grid; place-items:center; font-size:1rem; cursor:pointer; position: relative; }
+    .avatar:hover { border-color: var(--accent); }
+
+    /* User Dropdown */
+    .user-dropdown { position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem; min-width: 180px; box-shadow: var(--shadow-md); z-index: 100; display: none; }
+    .user-dropdown.active { display: block; }
+    .user-info { padding: 0.5rem 0; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+    .user-name { font-weight: 600; font-size: 0.85rem; }
+    .user-email { font-size: 0.75rem; color: var(--text-soft); }
+    .dropdown-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; }
+    .dropdown-item:hover { background: var(--surface-alt); }
+
+    /* Dialog */
+    .module-dialog { border:none; padding:0; background: none; width:min(600px,90vw); max-height: 80vh; overflow-y: auto; }
+    .module-dialog::backdrop { backdrop-filter: blur(6px) brightness(.6); background:rgba(0,0,0,.55); }
+    .dialog-inner { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg); padding:1.4rem 1.5rem 1.6rem; display:flex; flex-direction:column; gap:.9rem; box-shadow: var(--shadow-lg); }
+    .dialog-inner h2 { margin:0; font:600 1.1rem/1.2 var(--font-display); }
+    .dialog-body { margin:0; font-size:.8rem; line-height:1.45; color: var(--text-soft); }
+    .dialog-actions { display:flex; justify-content:flex-end; }
+
+    /* Google Translate Styles */
+    #google_translate_element {
+      display: inline-block;
+      margin-right: 0.75rem;
+    }
+    
+    .goog-te-gadget {
+      font-family: var(--font-body) !important;
+    }
+    
+    .goog-te-menu-value {
+      color: var(--text) !important;
+    }
+    
+    .goog-te-menu-value span {
+      color: var(--text) !important;
+    }
+    
+    .skiptranslate iframe {
+      display: none !important;
+    }
+    
+    body {
+      top: 0px !important;
+    }
+
+    /* Animations */
+    @keyframes pulse { 0%,100%{ transform:scale(.9); opacity:.75;} 50%{ transform:scale(1); opacity:1;} }
+  </style>
+</head>
+<body>
+  <header class="app-header" role="banner">
+    <div class="logo-block">
+      <div class="logo-mark" aria-hidden="true">⚡</div>
+      <h1 class="app-title">ResQverse</h1>
+    </div>
+    <nav aria-label="Utility" class="utility-nav">
+      <div id="google_translate_element"></div>
+      <button id="themeToggle" class="text-btn" type="button">Toggle Theme</button>
+      
+      <div class="avatar" id="userAvatar" tabindex="0" role="button" aria-label="User profile">
+        👤
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-info">
+            <div class="user-name" id="userName"><%= user.username %></div>
+            <div class="user-email" id="userEmail"><%= user.email %></div>
+            <div class="user-location"><small>Location: <%= user.state %>, <%= user.pincode %></small></div>
+          </div>
+          <div class="dropdown-item" id="logoutBtn">
+            <span>🚪</span> Sign Out
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="layout" role="main">
+    <section class="games-section" aria-labelledby="gamesHeading">
+      <h2 id="gamesHeading" class="section-title">Training Games</h2>
+      <div class="games-grid">
+        <article class="game-card" data-action="story">
+          <div class="icon-wrap book">📖</div>
+          <h3>Story-Based Game</h3>
+            <p class="blurb">Choose decisions during unfolding disaster scenes and see outcomes.</p>
+            <button class="secondary-btn" type="button">Play Now</button>
+        </article>
+        <article class="game-card" data-action="simulation">
+          <div class="icon-wrap sim">🎮</div>
+          <h3>2D Simulation</h3>
+            <p class="blurb">Control your character in real-time drills with dynamic hazards.</p>
+            <button class="secondary-btn" type="button">Start Simulation</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="modules-section" aria-labelledby="modulesHeading">
+      <h2 id="modulesHeading" class="section-title">Disaster Modules</h2>
+      <div class="modules-grid" id="modulesGrid" role="list">
+        <!-- Cards injected by JS -->
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer" role="contentinfo">
+    <small>&copy; <span id="year"></span> ResQverse. Educational prototype.</small>
+  </footer>
+
+  <template id="moduleCardTemplate">
+    <article class="module-card" role="listitem">
+      <div class="color-bar" aria-hidden="true"></div>
+      <div class="module-icon" aria-hidden="true"></div>
+      <h3 class="module-title"></h3>
+      <p class="module-desc"></p>
+      <button class="ghost-btn open-btn" type="button">Open Module</button>
+    </article>
+  </template>
+
+  <dialog id="moduleDialog" class="module-dialog" aria-labelledby="moduleDialogTitle">
+    <form method="dialog" class="dialog-inner">
+      <h2 id="moduleDialogTitle"></h2>
+      <div id="moduleDialogBody" class="dialog-body"></div>
+      <div class="dialog-actions">
+        <button value="close" class="secondary-btn">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // Disaster Preparedness & Response Dashboard Interactivity
+    // All vanilla JS. No external deps.
+
+    const DISASTER_MODULES = [
+      {
+        id: 'fire',
+        name: 'Fire Safety',
+        icon: '🔥',
+        colors: ['#ef4444', '#f97316'],
+        desc: 'Evacuation flow, smoke crawling, extinguisher basics.',
+        body: `
+          <h3>Understanding Fire Hazards</h3>
+          <p>Fire is a rapid oxidation process that releases heat, light, and various reaction products. It requires three elements: fuel, oxygen, and heat (the fire triangle).</p>
+          
+          <h3>Prevention Strategies</h3>
+          <ul>
+            <li>Keep flammable materials away from heat sources</li>
+            <li>Regularly inspect electrical wiring</li>
+            <li>Install smoke detectors on every floor</li>
+            <li>Never leave cooking unattended</li>
+            <li>Properly store flammable liquids</li>
+          </ul>
+          
+          <h3>Emergency Response</h3>
+          <p>If a fire occurs:</p>
+          <ol>
+            <li>Alert everyone in the building</li>
+            <li>Evacuate immediately using predetermined routes</li>
+            <li>Close doors behind you to contain the fire</li>
+            <li>Crawl low under smoke if necessary</li>
+            <li>Feel doors before opening - if hot, use alternative exit</li>
+            <li>Never use elevators during a fire</li>
+          </ol>
+          
+          <h3>Using Fire Extinguishers (PASS Method)</h3>
+          <ul>
+            <li><strong>P</strong>ull the pin</li>
+            <li><strong>A</strong>im at the base of the fire</li>
+            <li><strong>S</strong>queeze the handle</li>
+            <li><strong>S</strong>weep from side to side</li>
+          </ul>
+        `
+      },
+      {
+        id: 'earthquake',
+        name: 'Earthquake Preparedness',
+        icon: '🌍',
+        colors: ['#f59e0b', '#eab308'],
+        desc: 'Drop, Cover, Hold On & hazard awareness.',
+        body: `
+          <h3>Understanding Earthquakes</h3>
+          <p>Earthquakes are sudden shaking of the ground caused by the movement of tectonic plates beneath the Earth's surface. They can occur without warning and vary in intensity.</p>
+          
+          <h3>Before an Earthquake</h3>
+          <ul>
+            <li>Secure heavy furniture to walls</li>
+            <li>Identify safe spots in each room (under sturdy tables, against interior walls)</li>
+            <li>Prepare an emergency kit with food, water, and supplies for at least 3 days</li>
+            <li>Practice "Drop, Cover, and Hold On" drills with family</li>
+            <li>Learn how to turn off gas, water, and electricity</li>
+          </ul>
+          
+          <h3>During an Earthquake</h3>
+          <ol>
+            <li><strong>DROP</strong> onto your hands and knees</li>
+            <li><strong>COVER</strong> your head and neck with your arms, and seek shelter under a sturdy table</li>
+            <li><strong>HOLD ON</strong> to your shelter until shaking stops</li>
+            <li>If no shelter is available, crawl to an interior wall away from windows</li>
+            <li>Stay indoors until shaking stops and you're sure it's safe to exit</li>
+          </ol>
+          
+          <h3>After an Earthquake</h3>
+          <ul>
+            <li>Expect aftershocks</li>
+            <li>Check yourself and others for injuries</li>
+            <li>Check water, gas, and electric lines for damage</li>
+            <li>Turn on the radio for emergency information</li>
+            <li>Stay away from damaged areas</li>
+          </ul>
+        `
+      },
+      {
+        id: 'flood',
+        name: 'Flood Response',
+        icon: '💧',
+        colors: ['#0ea5e9', '#0284c7'],
+        desc: 'Elevation, contamination, electrical risk.',
+        body: `
+          <h3>Understanding Floods</h3>
+          <p>Floods are an overflow of water that submerges land that is usually dry. They can develop slowly during seasonal rains or rapidly in flash floods.</p>
+          
+          <h3>Flood Preparedness</h3>
+          <ul>
+            <li>Know your area's flood risk and elevation level</li>
+            <li>Identify evacuation routes and shelters</li>
+            <li>Install check valves in sewer traps to prevent backup</li>
+            <li>Waterproof your basement</li>
+            <li>Keep important documents in waterproof containers</li>
+            <li>Have an emergency kit ready</li>
+          </ul>
+          
+          <h3>During a Flood</h3>
+          <ol>
+            <li>Move to higher ground immediately</li>
+            <li>Evacuate if directed by authorities</li>
+            <li>Avoid walking through moving water (6 inches can knock you down)</li>
+            <li>Do not drive through flooded areas</li>
+            <li>Stay away from electrical equipment and downed power lines</li>
+          </ol>
+          
+          <h3>After a Flood</h3>
+          <ul>
+            <li>Return home only when authorities say it's safe</li>
+            <li>Be aware of areas where floodwaters have receded</li>
+            <li>Avoid standing water which may be electrically charged</li>
+            <li>Clean and disinfect everything that got wet</li>
+            <li>Watch for snakes and other animals that may have entered with floodwater</li>
+            <li>Photograph damage for insurance claims</li>
+          </ul>
+        `
+      },
+      {
+        id: 'pandemic',
+        name: 'Pandemic Readiness',
+        icon: '🩺',
+        colors: ['#10b981', '#059669'],
+        desc: 'Hygiene, distancing, PPE lifecycle.',
+        body: `
+          <h3>Understanding Pandemics</h3>
+          <p>A pandemic is a global outbreak of a disease that affects a large number of people across multiple countries or continents. Pandemics typically involve infectious diseases that can spread rapidly.</p>
+          
+          <h3>Prevention Measures</h3>
+          <ul>
+            <li>Practice good hand hygiene with soap and water or alcohol-based sanitizer</li>
+            <li>Maintain physical distance from others (at least 6 feet)</li>
+            <li>Wear masks in public settings</li>
+            <li>Avoid touching your face, especially eyes, nose, and mouth</li>
+            <li>Cover coughs and sneezes with your elbow or tissue</li>
+            <li>Clean and disinfect frequently touched surfaces daily</li>
+          </ul>
+          
+          <h3>Preparedness Planning</h3>
+          <ul>
+            <li>Have a supply of essential medications</li>
+            <li>Keep non-perishable food items and water</li>
+            <li>Have necessary health supplies on hand (thermometer, tissues, etc.)</li>
+            <li>Establish a communication plan with family and friends</li>
+            <li>Stay informed about local outbreak situations</li>
+            <li>Get vaccinated when vaccines become available</li>
+          </ul>
+          
+          <h3>During a Pandemic</h3>
+          <ol>
+            <li>Follow guidance from health authorities</li>
+            <li>Limit exposure to public places</li>
+            <li>Work from home if possible</li>
+            <li>Monitor your health and watch for symptoms</li>
+            <li>Isolate yourself if you develop symptoms</li>
+            <li>Seek medical advice through telemedicine when possible</li>
+          </ol>
+        `
+      },
+      {
+        id: 'cyclone',
+        name: 'Cyclone Safety',
+        icon: '🌀',
+        colors: ['#6366f1', '#4338ca'],
+        desc: 'Window securing & shelter zones.',
+        body: `
+          <h3>Understanding Cyclones</h3>
+          <p>Cyclones (also known as hurricanes or typhoons) are massive storm systems that form over warm ocean waters and move toward land. They bring high winds, heavy rainfall, storm surges, and tornadoes.</p>
+          
+          <h3>Cyclone Categories</h3>
+          <ul>
+            <li><strong>Category 1</strong>: 74-95 mph winds - Minimal damage</li>
+            <li><strong>Category 2</strong>: 96-110 mph winds - Moderate damage</li>
+            <li><strong>Category 3</strong>: 111-129 mph winds - Extensive damage</li>
+            <li><strong>Category 4</strong>: 130-156 mph winds - Extreme damage</li>
+            <li><strong>Category 5</strong>: 157+ mph winds - Catastrophic damage</li>
+          </ul>
+          
+          <h3>Before a Cyclone</h3>
+          <ul>
+            <li>Know your evacuation zone and routes</li>
+            <li>Prepare an emergency kit with supplies for at least 3 days</li>
+            <li>Secure your home: cover windows, secure outdoor objects</li>
+            <li>Trim trees around your property</li>
+            <li>Identify a safe room in your home (interior, windowless room)</li>
+            <li>Keep important documents in waterproof containers</li>
+          </ul>
+          
+          <h3>During a Cyclone</h3>
+          <ol>
+            <li>Evacuate if directed by authorities</li>
+            <li>If staying, go to your safe room</li>
+            <li>Stay away from windows and glass doors</li>
+            <li>Lie on the floor under a table or other sturdy object</li>
+            <li>Do not go outside during the eye of the storm</li>
+            <li>Listen to battery-powered radio for updates</li>
+          </ol>
+          
+          <h3>After a Cyclone</h3>
+          <ul>
+            <li>Wait for official announcement that it's safe to go out</li>
+            <li>Be careful of downed power lines</li>
+            <li>Avoid floodwaters</li>
+            <li>Inspect your home for damage carefully</li>
+            <li>Use flashlights instead of candles to avoid fire risk</li>
+            <li>Check on neighbors, especially elderly or disabled</li>
+          </ul>
+        `
+      },
+      {
+        id: 'landslide',
+        name: 'Landslide Safety',
+        icon: '⛰️',
+        colors: ['#8b5cf6', '#7c3aed'],
+        desc: 'Warning signs & evacuation protocols.',
+        body: `
+          <h3>Understanding Landslides</h3>
+          <p>Landslides occur when masses of rock, earth, or debris move down a slope. They can be triggered by heavy rainfall, earthquakes, volcanic eruptions, or human activities.</p>
+          
+          <h3>Warning Signs</h3>
+          <ul>
+            <li>New cracks or unusual bulges in the ground</li>
+            <li>Soil moving away from foundations</li>
+            <li>Tilting or cracking of concrete floors</li>
+            <li>Underground utility lines breaking</li>
+            <li>Sticking doors or windows</li>
+            <li>Water appearing in new locations</li>
+          </ul>
+          
+          <h3>Prevention Measures</h3>
+          <ul>
+            <li>Plant ground cover on slopes</li>
+            <li>Build retaining walls</li>
+            <li>Install flexible pipe fittings</li>
+            <li>Channel water drainage away from slopes</li>
+            <li>Minize development on steep slopes</li>
+          </ul>
+          
+          <h3>During a Landslide</h3>
+          <ol>
+            <li>Evacuate immediately if warned</li>
+            <li>Move to higher ground if possible</li>
+            <li>Stay alert and awake</li>
+            <li>Listen for unusual sounds</li>
+            <li>If trapped, make noise to alert rescuers</li>
+          </ol>
+        `
+      }
+    ];
+
+    function buildModuleCards(){
+      const grid = document.getElementById('modulesGrid');
+      const tpl = document.getElementById('moduleCardTemplate');
+      DISASTER_MODULES.forEach(mod => {
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        const bar = node.querySelector('.color-bar');
+        bar.style.setProperty('--c1', mod.colors[0]);
+        bar.style.setProperty('--c2', mod.colors[1]);
+        node.querySelector('.module-icon').textContent = mod.icon;
+        node.querySelector('.module-title').textContent = mod.name;
+        node.querySelector('.module-desc').textContent = mod.desc;
+        node.dataset.module = mod.id;
+        node.addEventListener('click', () => openModule(mod));
+        node.querySelector('.open-btn').addEventListener('click', (e)=>{ e.stopPropagation(); openModule(mod); });
+        grid.appendChild(node);
+      });
+    }
+
+    function openModule(mod){
+      const dialog = document.getElementById('moduleDialog');
+      document.getElementById('moduleDialogTitle').textContent = mod.name;
+      document.getElementById('moduleDialogBody').innerHTML = mod.body;
+      if(!dialog.open) dialog.showModal();
+    }
+
+    function initThemeToggle(){
+      const btn = document.getElementById('themeToggle');
+      const html = document.documentElement;
+
+      function applyLabel(theme){
+        if(theme === 'dark'){
+          btn.textContent = '☀️ Light Mode';
+        } else {
+          btn.textContent = '🌙 Dark Mode';
+        }
+      }
+
+      // Default is dark (set in HTML). Override if saved.
+      const saved = localStorage.getItem('pref-theme');
+      if(saved){ html.setAttribute('data-theme', saved); }
+      const start = html.getAttribute('data-theme') || 'dark';
+      applyLabel(start);
+
+      btn.addEventListener('click', ()=>{
+        const current = html.getAttribute('data-theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('pref-theme', next);
+        applyLabel(next);
+      });
+    }
+
+    function initGameCardActions(){
+      document.querySelectorAll('.game-card').forEach(card => {
+        card.addEventListener('click', ()=>{
+          const mode = card.dataset.action;
+          if(mode === 'story'){
+            console.log('[Story Game] Launch placeholder');
+            alert('Story Game placeholder – integrate narrative engine next.');
+          } else if(mode === 'simulation') {
+            console.log('[Simulation] Launch placeholder');
+            alert('Simulation placeholder – hook existing 2D engine.');
+          }
+        });
+      });
+    }
+
+    function initYear(){
+      document.getElementById('year').textContent = new Date().getFullYear();
+    }
+
+    function initUserDropdown() {
+      const avatar = document.getElementById('userAvatar');
+      const dropdown = document.getElementById('userDropdown');
+      const logoutBtn = document.getElementById('logoutBtn');
+      
+      // Toggle dropdown
+      avatar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!avatar.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.remove('active');
+        }
+      });
+      
+      // Logout functionality - ACTUALLY WORKS NOW
+      logoutBtn.addEventListener('click', () => {
+        // Redirect to logout endpoint which will destroy the session
+        window.location.href = '/logout';
+      });
+    }
+
+    // Google Translate initialization
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en', 
+        includedLanguages: 'en,hi', 
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+      
+      // Hide the Google branding
+      setTimeout(() => {
+        const bannerFrame = document.querySelector('iframe.goog-te-banner-frame');
+        if (bannerFrame) {
+          bannerFrame.style.display = 'none';
+        }
+        document.body.style.top = '0px';
+      }, 500);
+    }
+
+    // Style the Google Translate dropdown
+    function styleTranslateDropdown() {
+      const observer = new MutationObserver(() => {
+        const dropdownFrame = document.querySelector('iframe.goog-te-menu-frame');
+        if (dropdownFrame) {
+          try {
+            const doc = dropdownFrame.contentDocument || dropdownFrame.contentWindow.document;
+            const style = doc.createElement('style');
+            style.textContent = `
+              body { 
+                background-color: ${getComputedStyle(document.documentElement).getPropertyValue('--surface')} !important; 
+                color: ${getComputedStyle(document.documentElement).getPropertyValue('--text')} !important;
+              }
+              .goog-te-menu-value { 
+                background-color: ${getComputedStyle(document.documentElement).getPropertyValue('--surface')} !important; 
+                border: none !important; 
+              }
+              .goog-te-menu-value:hover { 
+                background-color: ${getComputedStyle(document.documentElement).getPropertyValue('--surface-alt')} !important; 
+              }
+              .goog-te-menu-value span { 
+                color: ${getComputedStyle(document.documentElement).getPropertyValue('--text')} !important; 
+              }
+              .goog-te-menu2-item div, .goog-te-menu2-item-selected div {
+                color: ${getComputedStyle(document.documentElement).getPropertyValue('--text')} !important;
+              }
+              .goog-te-menu2-item {
+                background-color: ${getComputedStyle(document.documentElement).getPropertyValue('--surface')} !important;
+              }
+              .goog-te-menu2-item-selected {
+                background-color: ${getComputedStyle(document.documentElement).getPropertyValue('--surface-alt')} !important;
+              }
+              .goog-te-menu2-item:hover {
+                background-color: ${getComputedStyle(document.documentElement).getPropertyValue('--surface-alt')} !important;
+              }
+            `;
+            doc.head.appendChild(style);
+          } catch (error) {
+            console.error("Could not style Google Translate dropdown:", error);
+          }
+        }
+        
+        // Hide the top banner iframe
+        const bannerFrame = document.querySelector('iframe.goog-te-banner-frame');
+        if (bannerFrame) {
+          bannerFrame.style.display = 'none';
+        }
+        document.body.style.top = '0px';
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      buildModuleCards();
+      initThemeToggle();
+      initGameCardActions();
+      initYear();
+      initUserDropdown();
+      styleTranslateDropdown();
+    });
+  </script>
+</body>
+</html>

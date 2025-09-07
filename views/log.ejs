@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Screen Animated Login & Register Form</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            color: #fff;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #25252b;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            border: 2px solid #4774d4;
+            box-shadow: 0 0 25px #052f9a;
+            overflow: hidden;
+        }
+
+        .container .form-box {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .form-box.Login {
+            left: 0;
+            padding: 0 40px;
+        }
+
+        .form-box.Login .animation {
+            transform: translateX(0%);
+            transition: .7s;
+            opacity: 1;
+            transition-delay: calc(.1s * var(--S));
+        }
+
+        .container.active .form-box.Login .animation {
+            transform: translateX(-120%);
+            opacity: 0;
+            transition-delay: calc(.1s * var(--D));
+        }
+
+        .form-box.Register {
+            right: 0;
+            padding: 0 60px;
+        }
+
+        .form-box.Register .animation {
+            transform: translateX(120%);
+            transition: .7s ease;
+            opacity: 0;
+            filter: blur(10px);
+            transition-delay: calc(.1s * var(--S));
+        }
+
+        .container.active .form-box.Register .animation {
+            transform: translateX(0%);
+            opacity: 1;
+            filter: blur(0px);
+            transition-delay: calc(.1s * var(--li));
+        }
+
+        .form-box h2 {
+            font-size: 32px;
+            text-align: center;
+        }
+
+        .form-box .input-box {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            margin-top: 25px;
+        }
+
+        .input-box input, .input-box select {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            color: #fff;
+            font-weight: 600;
+            border-bottom: 2px solid #fff;
+            padding-right: 23px;
+            transition: .5s;
+        }
+        
+        /* Added for select dropdown styling */
+        .input-box select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+        
+        .input-box select option {
+            background: #25252b;
+            color: #fff;
+        }
+        
+        .input-box input:focus,
+        .input-box input:valid,
+        .input-box select:focus,
+        .input-box select:valid {
+            border-bottom: 2px solid #e46033;
+        }
+
+        .input-box label {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #fff;
+            transition: .5s;
+            pointer-events: none; /* So you can click through the label */
+        }
+        
+        .input-box input:focus~label,
+        .input-box input:valid~label,
+        .input-box select:focus~label,
+        .input-box select:valid~label {
+            top: -5px;
+            color: #3371e4;
+        }
+
+        .input-box box-icon {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            font-size: 18px;
+            transform: translateY(-50%);
+            color: #fff;
+        }
+
+        .input-box input:focus~box-icon,
+        .input-box input:valid~box-icon,
+        .input-box select:focus~box-icon,
+        .input-box select:valid~box-icon {
+            color: #3380e4;
+        }
+        
+        .btn {
+            position: relative;
+            width: 100%;
+            height: 45px;
+            background: transparent;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            border: 2px solid #3365e4;
+            overflow: hidden;
+            z-index: 1;
+            margin-top: 10px;
+        }
+
+        .btn::before {
+            content: "";
+            position: absolute;
+            height: 300%;
+            width: 100%;
+            background: linear-gradient(#25252b, #33a0e4, #25252b, #337ae4);
+            top: -100%;
+            left: 0;
+            z-index: -1;
+            transition: .5s;
+        }
+
+        .btn:hover:before {
+            top: 0;
+        }
+
+        .regi-link {
+            font-size: 14px;
+            text-align: center;
+            margin: 20px 0 10px;
+        }
+
+        .regi-link a {
+            text-decoration: none;
+            color: #e46033;
+            font-weight: 600;
+        }
+
+        .regi-link a:hover {
+            text-decoration: underline;
+        }
+
+        .info-content {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .info-content.Login {
+            right: 0;
+            text-align: right;
+            padding: 0 40px 60px 150px;
+        }
+
+        .info-content.Login .animation {
+            transform: translateX(0);
+            transition: .7s ease;
+            transition-delay: calc(.1s * var(--S));
+            opacity: 1;
+            filter: blur(0px);
+        }
+
+        .container.active .info-content.Login .animation {
+            transform: translateX(120%);
+            opacity: 0;
+            filter: blur(10px);
+            transition-delay: calc(.1s * var(--D));
+        }
+
+        .info-content.Register {
+            left: 0;
+            text-align: left;
+            padding: 0 150px 60px 38px;
+            pointer-events: none;
+        }
+
+        .info-content.Register .animation {
+            transform: translateX(-120%);
+            transition: .7s ease;
+            opacity: 0;
+            filter: blur(10PX);
+            transition-delay: calc(.1s * var(--S));
+        }
+
+        .container.active .info-content.Register .animation {
+            transform: translateX(0%);
+            opacity: 1;
+            filter: blur(0);
+            transition-delay: calc(.1s * var(--li));
+        }
+
+        .info-content h2 {
+            text-transform: uppercase;
+            font-size: 36px;
+            line-height: 1.3;
+        }
+
+        .info-content p {
+            font-size: 16px;
+        }
+
+        .container .curved-shape {
+            position: absolute;
+            right: 0;
+            top: -5px;
+            height: 600px;
+            width: 850px;
+            background: linear-gradient(45deg, #25252b, #33dbe4);
+            transform: rotate(10deg) skewY(40deg);
+            transform-origin: bottom right;
+            transition: 1.5s ease;
+            transition-delay: 1.6s;
+        }
+
+        .container.active .curved-shape {
+            transform: rotate(0deg) skewY(0deg);
+            transition-delay: .5s;
+        }
+
+        .container .curved-shape2 {
+            position: absolute;
+            left: 250px;
+            top: 100%;
+            height: 700px;
+            width: 850px;
+            background: #25252b;
+            border-top: 3px solid #386fdc;
+            transform: rotate(0deg) skewY(0deg);
+            transform-origin: bottom left;
+            transition: 1.5s ease;
+            transition-delay: .5s;
+        }
+
+        .container.active .curved-shape2 {
+            transform: rotate(-11deg) skewY(-41deg);
+            transition-delay: 1.2s;
+        }
+        /* Add notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+            max-width: 350px;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification.success {
+            background-color: #4CAF50;
+        }
+        
+        .notification.error {
+            background-color: #f44336;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .info-content.Login {
+                padding: 0 30px 60px 100px;
+            }
+            
+            .info-content.Register {
+                padding: 0 100px 60px 30px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .form-box.Login, 
+            .form-box.Register {
+                padding: 0 30px;
+            }
+            
+            .info-content.Login {
+                padding: 0 30px 40px 80px;
+            }
+            
+            .info-content.Register {
+                padding: 0 80px 40px 30px;
+            }
+            
+            .info-content h2 {
+                font-size: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-box.Login, 
+            .form-box.Register {
+                width: 100%;
+                padding: 0 40px;
+            }
+            
+            .info-content {
+                display: none;
+            }
+            
+            .form-box.Register {
+                transform: translateX(100%);
+            }
+            
+            .container.active .form-box.Register {
+                transform: translateX(0);
+            }
+            
+            .curved-shape,
+            .curved-shape2 {
+                display: none;
+            }
+             /* Notification responsive styles for mobile */
+            .notification {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                text-align: center;
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="curved-shape"></div>
+        <div class="curved-shape2"></div>
+        <div class="form-box Login">
+            <h2 class="animation" style="--D:0; --S:21">Login</h2>
+            <form action="/login" method="POST">
+  <div class="input-box animation" style="--D:1; --S:22">
+    <input type="text" name="username" required>
+    <label>Username</label>
+  </div>
+
+  <div class="input-box animation" style="--D:2; --S:23">
+    <input type="password" name="password" required>
+    <label>Password</label>
+  </div>
+
+  <div class="animation" style="--D:3; --S:24">
+    <button class="btn" type="submit">Login</button>
+  </div>
+  <div class="regi-link animation" style="--D:4; --S:25">
+      <p>Don't have an account? <br> <a href="#" class="SignUpLink">Sign Up</a></p>
+  </div>
+</form>
+
+        </div>
+
+        <div class="info-content Login">
+            <h2 class="animation" style="--D:0; --S:20">WELCOME TO </h2>
+            <p class="animation" style="--D:1; --S:21">ResQverse</p>
+        </div>
+
+        <div class="form-box Register">
+            <h2 class="animation" style="--li:17; --S:0">Register</h2>
+            <form action="/register" method="POST">
+  <div class="input-box animation" style="--li:18; --S:1">
+    <input type="text" name="username" required autocomplete="username">
+    <label>Username</label>
+    <box-icon type='solid' name='user' color="gray"></box-icon>
+  </div>
+
+  <div class="input-box animation" style="--li:19; --S:2">
+    <input type="email" name="email" required autocomplete="email">
+    <label>Email</label>
+    <box-icon name='envelope' type='solid' color="gray"></box-icon>
+  </div>
+
+  <div class="input-box animation" style="--li:20; --S:3">
+    <select name="state" required>
+      <option value="" disabled selected hidden></option>
+      <option value="Andhra Pradesh">Andhra Pradesh</option>
+      <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+      <option value="Assam">Assam</option>
+      <option value="Bihar">Bihar</option>
+      <option value="Chhattisgarh">Chhattisgarh</option>
+      <option value="Goa">Goa</option>
+      <option value="Gujarat">Gujarat</option>
+      <option value="Haryana">Haryana</option>
+      <option value="Himachal Pradesh">Himachal Pradesh</option>
+      <option value="Jharkhand">Jharkhand</option>
+      <option value="Karnataka">Karnataka</option>
+      <option value="Kerala">Kerala</option>
+      <option value="Madhya Pradesh">Madhya Pradesh</option>
+      <option value="Maharashtra">Maharashtra</option>
+      <option value="Manipur">Manipur</option>
+      <option value="Meghalaya">Meghalaya</option>
+      <option value="Mizoram">Mizoram</option>
+      <option value="Nagaland">Nagaland</option>
+      <option value="Odisha">Odisha</option>
+      <option value="Punjab">Punjab</option>
+      <option value="Rajasthan">Rajasthan</option>
+      <option value="Sikkim">Sikkim</option>
+      <option value="Tamil Nadu">Tamil Nadu</option>
+      <option value="Telangana">Telangana</option>
+      <option value="Tripura">Tripura</option>
+      <option value="Uttar Pradesh">Uttar Pradesh</option>
+      <option value="Uttarakhand">Uttarakhand</option>
+      <option value="West Bengal">West Bengal</option>
+      <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+      <option value="Chandigarh">Chandigarh</option>
+      <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+      <option value="Delhi">Delhi</option>
+      <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+      <option value="Ladakh">Ladakh</option>
+      <option value="Lakshadweep">Lakshadweep</option>
+      <option value="Puducherry">Puducherry</option>
+    </select>
+    <label>State</label>
+    <box-icon name='map-alt' type='solid' color="gray"></box-icon>
+  </div>
+
+  <div class="input-box animation" style="--li:21; --S:4">
+    <input type="text" name="pincode" required pattern="[0-9]{6}" maxlength="6" autocomplete="postal-code">
+    <label>Pin Code</label>
+    <box-icon name='hash' type='solid' color="gray"></box-icon>
+  </div>
+
+  <div class="input-box animation" style="--li:22; --S:5">
+    <input type="password" name="password" required autocomplete="new-password">
+    <label>Password</label>
+    <box-icon name='lock-alt' type='solid' color="gray"></box-icon>
+  </div>
+
+  <div class="animation" style="--li:23; --S:6">
+    <button class="btn" type="submit">Register</button>
+  </div>
+
+  <div class="regi-link animation" style="--li:24; --S:7">
+    <p>Already have an account? <br> <a href="#" class="SignInLink">Sign In</a></p>
+  </div>
+</form>
+
+        </div>
+
+        <div class="info-content Register">
+            <h2 class="animation" style="--li:17; --S:0">WELCOME!</h2>
+            <p class="animation" style="--li:18; --S:1">We're delighted to have you here. If you need any assistance, feel free to reach out.</p>
+        </div>
+    </div>
+    <div id="notification" class="notification"></div>
+
+    <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
+
+    <script>
+        const container = document.querySelector('.container');
+        const LoginLink = document.querySelector('.SignInLink');
+        const RegisterLink = document.querySelector('.SignUpLink');
+        const notification = document.getElementById('notification');
+
+        RegisterLink.addEventListener('click', () => {
+            container.classList.add('active');
+        });
+
+        LoginLink.addEventListener('click', () => {
+            container.classList.remove('active');
+        });
+
+        // Function to show notification
+        function showNotification(message, isSuccess) {
+            notification.textContent = message;
+            notification.className = 'notification';
+            notification.classList.add(isSuccess ? 'success' : 'error');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                
+                // If login was successful, redirect to dashboard
+                if (isSuccess && message.includes('Redirecting')) {
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                }
+            }, 3000);
+        }
+
+        // Handle form submissions with AJAX
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.querySelector('form[action="/login"]');
+            const registerForm = document.querySelector('form[action="/register"]');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(loginForm);
+                    const data = Object.fromEntries(formData.entries());
+                    
+                    fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        showNotification(data.message, data.success);
+                    })
+                    .catch(error => {
+                        showNotification('❌ Network error. Please try again.', false);
+                    });
+                });
+            }
+            
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(registerForm);
+                    const data = Object.fromEntries(formData.entries());
+                    
+                    fetch('/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        showNotification(data.message, data.success);
+    
+                        // Clear form on successful registration
+                        if (data.success) {
+                            registerForm.reset();
+        
+                            // Redirect to dashboard if specified
+                            if (data.redirect) {
+                                setTimeout(() => {
+                                    window.location.href = data.redirect;
+                                }, 1500); // Redirect after 1.5 seconds
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('❌ Network error. Please try again.', false);
+                    });
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>

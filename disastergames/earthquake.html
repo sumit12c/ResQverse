@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthquake Safety Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #2c3e50;
+            font-family: 'Press Start 2P', cursive;
+            color: white;
+            overflow: hidden; /* Prevents scrollbars from appearing */
+        }
+        #game-container {
+            border: 5px solid #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            width: 95%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9; /* Maintain a widescreen aspect ratio */
+            position: relative; /* For positioning canvas and controls */
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #87CEEB; /* Sky blue background */
+        }
+        h1 {
+            font-size: 1.2rem; /* Adjusted for longer titles */
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px #000;
+            height: 2rem;
+            text-align: center;
+        }
+        
+        /* On-screen controls for mobile */
+        #controls {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 20px;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none; /* For Safari */
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+            cursor: pointer;
+        }
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0.95);
+        }
+
+        @media (min-width: 768px) {
+            #controls {
+                display: none; /* Hide on-screen controls on larger screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 id="level-title">Earthquake Safety Drill</h1>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <!-- On-screen controls for mobile -->
+        <div id="controls">
+            <div class="control-group">
+                <div class="control-btn" id="left-btn">◀</div>
+                <div class="control-btn" id="right-btn">▶</div>
+            </div>
+            <div class="control-group">
+                <div class="control-btn" id="crouch-btn">▼</div>
+                <div class="control-btn" id="jump-btn">▲</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('game-container');
+        const levelTitle = document.getElementById('level-title');
+
+        let canvasWidth, canvasHeight;
+
+        // --- Game State ---
+        const gravity = 0.5;
+        let gameStarted = false;
+        let isEarthquake = false;
+        let shakeIntensity = 0;
+        let gameMessage = "";
+        let messageTimer = 0;
+        let gameOver = false;
+        let gameWon = false;
+        let timer = 20;
+        let score = 0;
+        let debris = [];
+        const DEBRIS_COUNT = 20;
+        let currentScenario = null;
+
+        // --- Player ---
+        const player = {
+            x: 100, y: 100, width: 40, height: 60,
+            speed: 5, dx: 0, dy: 0, jumpPower: 12,
+            isOnGround: false, isCrouching: false, originalHeight: 60,
+        };
+
+        // --- Scenarios ---
+        const scenarios = [
+            {
+                name: "Scenario: The House",
+                bgColor: '#f0e68c', // Khaki
+                objects: [
+                    { type: 'table', x: 450, width: 150, height: 70, isPlatform: true, isSafeZone: true },
+                    { type: 'door', x: 720, width: 80, height: 120, isExit: true },
+                    { type: 'tv', x: 200, width: 100, height: 80, isPlatform: true },
+                    { type: 'photoFrame', x: 350, yPos: 150, width: 50, height: 60 }
+                ],
+                playerStart: { x: 100 }
+            },
+            {
+                name: "Scenario: The Office",
+                bgColor: '#b0c4de', // LightSteelBlue
+                objects: [
+                    { type: 'table', label: "Manager's Desk", x: 550, width: 180, height: 80, isPlatform: true, isSafeZone: true },
+                    { type: 'door', x: 50, width: 80, height: 120, isExit: true },
+                    { type: 'computerDesk', x: 200, width: 120, height: 60, isPlatform: true },
+                    { type: 'computerDesk', x: 340, width: 120, height: 60, isPlatform: true },
+                ],
+                playerStart: { x: 700 }
+            },
+            {
+                name: "Scenario: The Cinema",
+                bgColor: '#4a148c', // Deep purple
+                objects: [
+                    { type: 'cinemaChairs', x: 100, width: 300, height: 90, isPlatform: true, isSafeZone: true },
+                    { type: 'stairs', x: 450, width: 250, height: 180, steps: 5 },
+                    { type: 'door', x: 720, width: 80, height: 120, isExit: true }
+                ],
+                playerStart: { x: 150 }
+            }
+        ];
+        const floor = { height: 50 };
+
+        // --- Input Handling ---
+        function handleKeyDown(e) {
+            if (!gameStarted) {
+                gameStarted = true;
+                restartGame();
+                return;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+            if (e.key === 'ArrowUp' || e.key === 'w') keys.up = true;
+            if (e.key === 'ArrowDown' || e.key === 's') keys.down = true;
+            if (e.key === 'Enter') keys.enter = true;
+            if (e.key === 'r' || e.key === 'R') {
+                if (gameOver || gameWon) {
+                    gameStarted = false; // Go back to start screen
+                    levelTitle.innerText = "Earthquake Safety Drill";
+                }
+            }
+        }
+        function handleKeyUp(e) {
+            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+            if (e.key === 'ArrowUp' || e.key === 'w') keys.up = false;
+            if (e.key === 'ArrowDown' || e.key === 's') keys.down = false;
+            if (e.key === 'Enter') keys.enter = false;
+        }
+        const keys = { right: false, left: false, up: false, down: false, enter: false };
+
+        // --- Touch Controls ---
+        function setupTouchControls() {
+            const leftBtn = document.getElementById('left-btn'), rightBtn = document.getElementById('right-btn');
+            const jumpBtn = document.getElementById('jump-btn'), crouchBtn = document.getElementById('crouch-btn');
+            leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.left = true; });
+            leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.left = false; });
+            rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.right = true; });
+            rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.right = false; });
+            jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.up = true; });
+            jumpBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.up = false; });
+            crouchBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.down = true; });
+            crouchBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.down = false; });
+            
+            canvas.addEventListener('touchstart', function startGameOnTouch() {
+                if (!gameStarted) {
+                    gameStarted = true;
+                    restartGame();
+                    // We remove it to prevent re-triggering, but add it back on game over.
+                    canvas.removeEventListener('touchstart', startGameOnTouch);
+                }
+            });
+        }
+
+        // --- Drawing Functions ---
+        function drawPlayer() { /* ... identical to previous version ... */ }
+        function drawObjects() {
+            // Floor
+            ctx.fillStyle = '#27ae60';
+            ctx.fillRect(0, canvasHeight - floor.height, canvasWidth, floor.height);
+            // Background
+            ctx.fillStyle = currentScenario.bgColor;
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight - floor.height);
+            // Walls
+            ctx.fillStyle = '#d2b48c'; // Tan
+            ctx.fillRect(0, 0, 20, canvasHeight - floor.height);
+            ctx.fillRect(canvasWidth - 20, 0, 20, canvasHeight - floor.height);
+
+            currentScenario.objects.forEach(obj => {
+                switch(obj.type) {
+                    case 'table': drawTable(obj); break;
+                    case 'door': drawDoor(obj); break;
+                    case 'tv': drawTV(obj); break;
+                    case 'photoFrame': drawPhotoFrame(obj); break;
+                    case 'computerDesk': drawComputerDesk(obj); break;
+                    case 'cinemaChairs': drawCinemaChairs(obj); break;
+                    case 'stairs': drawStairs(obj); break;
+                }
+            });
+        }
+        // ... (New drawing functions for each object type)
+        function drawTable(obj) {
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(obj.x, obj.y, obj.width, 15);
+            ctx.fillRect(obj.x + 10, obj.y + 15, 15, obj.height - 15);
+            ctx.fillRect(obj.x + obj.width - 25, obj.y + 15, 15, obj.height - 15);
+             if (obj.label) {
+                ctx.fillStyle = 'white';
+                ctx.font = '12px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                ctx.fillText(obj.label, obj.x + obj.width / 2, obj.y - 10);
+            }
+        }
+        function drawDoor(obj) {
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+            ctx.fillStyle = '#FFD700'; // Gold knob
+            ctx.beginPath();
+            ctx.arc(obj.x + 15, obj.y + obj.height / 2, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.font = '16px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText("EXIT", obj.x + obj.width / 2, obj.y - 10);
+        }
+        function drawTV(obj) {
+            const standHeight = obj.height / 4;
+            // Stand
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(obj.x, obj.y + obj.height - standHeight, obj.width, standHeight);
+            // Screen
+            ctx.fillStyle = '#000';
+            ctx.fillRect(obj.x + 5, obj.y, obj.width - 10, obj.height - standHeight - 5);
+        }
+        function drawPhotoFrame(obj) {
+            ctx.fillStyle = '#d35400'; // Pumpkin
+            ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+            ctx.fillStyle = '#ecf0f1'; // Clouds
+            ctx.fillRect(obj.x + 5, obj.y + 5, obj.width - 10, obj.height - 10);
+        }
+        function drawComputerDesk(obj) {
+             // Desk
+            ctx.fillStyle = '#95a5a6';
+            ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+             // PC Tower
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(obj.x + 5, obj.y - 50, 30, 50);
+            // Monitor
+            ctx.fillStyle = '#000';
+            ctx.fillRect(obj.x + 45, obj.y - 60, 70, 50);
+            ctx.fillStyle = '#7f8c8d';
+            ctx.fillRect(obj.x + 75, obj.y - 10, 10, 10);
+        }
+        function drawCinemaChairs(obj) {
+             ctx.fillStyle = '#c0392b'; // Red seats
+             for(let i = 0; i < 5; i++) {
+                 ctx.fillRect(obj.x + i * (obj.width/5) + 5, obj.y, (obj.width/5)-10, obj.height);
+             }
+        }
+        function drawStairs(obj) {
+            ctx.fillStyle = '#7f8c8d';
+            const stepWidth = obj.width / obj.steps;
+            const stepHeight = obj.height / obj.steps;
+            for(let i = 0; i < obj.steps; i++) {
+                ctx.fillRect(obj.x + i * stepWidth, obj.y + i * stepHeight, stepWidth, obj.height - i * stepHeight);
+            }
+        }
+        function drawDebris() { /* ... identical ... */ }
+        function drawStartScreen() { /* ... identical ... */ }
+        function drawUI() { /* ... identical ... */ }
+
+        // --- Game Logic ---
+        function update() {
+            if (gameOver || gameWon || !gameStarted) return;
+            
+            // Crouching Logic
+            if (keys.down && player.isOnGround) {
+                if (!player.isCrouching) {
+                    player.isCrouching = true;
+                    player.height = player.originalHeight / 2;
+                    player.y += player.originalHeight / 2;
+                }
+            } else {
+                if (player.isCrouching) {
+                    let canStand = true;
+                    const standUpY = player.y - player.originalHeight / 2;
+                    
+                    // Check for collision with platforms if trying to stand
+                    currentScenario.objects.forEach(obj => {
+                        if (obj.isPlatform) {
+                            const platformTop = obj.y;
+                            if (player.x + player.width > obj.x && 
+                                player.x < obj.x + obj.width &&
+                                standUpY + player.originalHeight > platformTop &&
+                                standUpY < platformTop + 15) { 
+                                canStand = false;
+                            }
+                        }
+                    });
+
+                    if (canStand) {
+                        player.isCrouching = false;
+                        player.height = player.originalHeight;
+                        player.y -= player.originalHeight / 2;
+                    }
+                }
+            }
+
+
+            // --- Movement ---
+            player.dx = 0;
+            if (keys.right && !player.isCrouching) player.dx = player.speed;
+            if (keys.left && !player.isCrouching) player.dx = -player.speed;
+            if (keys.up && player.isOnGround && !player.isCrouching) {
+                player.dy = -player.jumpPower;
+                player.isOnGround = false;
+            }
+            player.x += player.dx;
+            player.dy += gravity;
+            player.y += player.dy;
+            
+            // --- Collision Detection ---
+            player.isOnGround = false;
+            let onPlatform = false;
+
+            // Platforms (tables, stairs, etc.)
+            currentScenario.objects.forEach(obj => {
+                if (obj.isPlatform) {
+                    const platformTop = obj.y;
+                    if (player.x + player.width > obj.x && 
+                        player.x < obj.x + obj.width &&
+                        player.y + player.height > platformTop &&
+                        player.y < platformTop) {
+                         if (player.dy >= 0) {
+                            player.y = platformTop - player.height;
+                            player.dy = 0;
+                            player.isOnGround = true;
+                            onPlatform = true;
+                         }
+                    }
+                }
+                 // Stair collision logic
+                if (obj.type === 'stairs') {
+                     const stepWidth = obj.width / obj.steps;
+                     const stepHeight = obj.height / obj.steps;
+                      if (player.x + player.width > obj.x && player.x < obj.x + obj.width) {
+                         for(let i = 0; i < obj.steps; i++) {
+                             const stepX = obj.x + i * stepWidth;
+                             const stepY = obj.y + i * stepHeight;
+                             if(player.x + player.width > stepX && player.x < stepX + stepWidth && player.y + player.height > stepY && player.y < stepY) {
+                                 if (player.dy >= 0) {
+                                     player.y = stepY - player.height;
+                                     player.dy = 0;
+                                     player.isOnGround = true;
+                                     onPlatform = true;
+                                     break;
+                                 }
+                             }
+                         }
+                      }
+                }
+            });
+
+            // Floor collision
+            const floorY = canvasHeight - floor.height;
+            if (player.y + player.height > floorY) {
+                player.y = floorY - player.height;
+                player.dy = 0;
+                player.isOnGround = true;
+            }
+            // Wall collision
+            if (player.x < 20) player.x = 20;
+            if (player.x + player.width > canvasWidth - 20) player.x = canvasWidth - 20 - player.width;
+
+            // Debris and safety check
+            if (isEarthquake) {
+                let isPlayerSafe = false;
+                currentScenario.objects.forEach(obj => {
+                    if (obj.isSafeZone && player.isCrouching && 
+                        player.x > obj.x && player.x + player.width < obj.x + obj.width) {
+                        isPlayerSafe = true;
+                    }
+                });
+
+                debris.forEach(d => {
+                    d.y += d.dy;
+                    if (d.y > canvasHeight) {
+                        d.y = -d.height; d.x = Math.random() * (canvasWidth - 40) + 20;
+                    }
+                    if (!isPlayerSafe && player.x < d.x + d.width && player.x + player.width > d.x &&
+                        player.y < d.y + d.height && player.y + player.height > d.y) { 
+                        gameOver = true;
+                    }
+                });
+
+                 // Win conditions
+                if (isPlayerSafe) winGame("SAFE! You're protected from falling objects.");
+                
+                currentScenario.objects.forEach(obj => {
+                    if (obj.isExit) {
+                         const isAtDoor = player.x + player.width/2 > obj.x &&
+                                 player.x + player.width/2 < obj.x + obj.width;
+                        if (isAtDoor && keys.enter) {
+                            winGame("SAFE! You've evacuated the building.");
+                        }
+                    }
+                });
+            }
+
+            // Timers
+            if (messageTimer > 0) messageTimer -= 1 / 60;
+            if (isEarthquake) {
+                timer -= 1/60;
+                if (timer <= 0) {
+                    timer = 0; gameOver = true; showGameMessage("The building collapsed!", 5);
+                }
+            }
+            shakeIntensity = isEarthquake ? 5 : 0;
+        }
+        
+        function showGameMessage(msg, duration = 3) { /* ... identical ... */ }
+        function winGame(msg) { /* ... identical ... */ }
+        function createDebris() { /* ... identical ... */ }
+
+        // --- Game Loop ---
+        function loop() {
+            ctx.save();
+            if (shakeIntensity > 0 && !gameOver && !gameWon) {
+                const dx = (Math.random() - 0.5) * shakeIntensity, dy = (Math.random() - 0.5) * shakeIntensity;
+                ctx.translate(dx, dy);
+            }
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
+            if (!gameStarted) {
+                drawStartScreen();
+            } else {
+                drawObjects();
+                update();
+                if (isEarthquake) drawDebris();
+                if (!gameOver) drawPlayer();
+                drawUI();
+            }
+            ctx.restore();
+            requestAnimationFrame(loop);
+        }
+        
+        function setupScenarioObjects() {
+            if (!currentScenario) return;
+            const floorY = canvasHeight - floor.height;
+            currentScenario.objects.forEach(obj => {
+                if (obj.yPos) obj.y = obj.yPos; // Wall items
+                else obj.y = floorY - obj.height; // Ground items
+            });
+        }
+        function resizeCanvas() {
+            const rect = gameContainer.getBoundingClientRect();
+            canvas.width = rect.width; canvas.height = rect.height;
+            canvasWidth = canvas.width; canvasHeight = canvas.height;
+            setupScenarioObjects();
+            if (player.y + player.height > canvasHeight - floor.height) {
+                 player.y = canvasHeight - floor.height - player.height;
+            }
+        }
+        
+        function startGameDrill() {
+            isEarthquake = true; createDebris(); showGameMessage("EARTHQUAKE!", 5);
+        }
+
+        function restartGame() {
+            const scenarioIndex = Math.floor(Math.random() * scenarios.length);
+            currentScenario = scenarios[scenarioIndex];
+            levelTitle.innerText = currentScenario.name;
+
+            gameOver = false; gameWon = false; isEarthquake = false;
+            timer = 20; score = 0; debris = []; messageTimer = 0;
+            
+            setupScenarioObjects();
+            
+            player.x = currentScenario.playerStart.x;
+            player.y = canvasHeight - floor.height - player.height - 100;
+            player.dy = 0; player.dx = 0; player.isCrouching = false;
+            player.height = player.originalHeight;
+
+            setTimeout(startGameDrill, 2000);
+        }
+
+        // --- Initialization ---
+        function init() {
+            window.addEventListener('resize', resizeCanvas);
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            setupTouchControls();
+            resizeCanvas();
+            loop();
+        }
+
+        // Re-assigning drawPlayer and UI functions to avoid hiding them in comments
+        drawPlayer = function() {
+            ctx.fillStyle = '#ffcc99'; 
+            ctx.fillRect(player.x, player.y, player.width, player.width * 0.75); 
+            ctx.fillStyle = '#e74c3c'; 
+            ctx.fillRect(player.x, player.y + 5, player.width, 10);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(player.x + 8, player.y + 15, 8, 8);
+            ctx.fillRect(player.x + player.width - 16, player.y + 15, 8, 8);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(player.x + 12, player.y + 19, 4, 4);
+            ctx.fillRect(player.x + player.width - 12, player.y + 19, 4, 4);
+            const bodyY = player.y + player.width * 0.75;
+            const bodyHeight = player.height - (player.width * 0.75);
+            ctx.fillStyle = '#3498db';
+            ctx.fillRect(player.x + 5, bodyY, player.width - 10, bodyHeight);
+        }
+        drawUI = function() {
+            ctx.fillStyle = 'white';
+            ctx.font = '20px "Press Start 2P"';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Time: ${Math.ceil(timer)}`, 30, 40);
+            ctx.textAlign = 'right';
+            ctx.fillText(`Score: ${score}`, canvasWidth - 40, 40);
+            if (messageTimer > 0) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, canvasHeight / 2 - 40, canvasWidth, 80);
+                ctx.fillStyle = 'white';
+                ctx.font = '18px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(gameMessage, canvasWidth / 2, canvasHeight / 2);
+            }
+            if (gameOver || gameWon) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                ctx.fillStyle = gameWon ? '#2ecc71' : '#e74c3c';
+                ctx.font = '32px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                if (gameWon) {
+                    ctx.fillText(`YOU ARE SAFE!`, canvasWidth / 2, canvasHeight / 2 - 40);
+                    ctx.font = '24px "Press Start 2P"';
+                    ctx.fillText(`SCORE: ${score}`, canvasWidth / 2, canvasHeight / 2);
+                } else {
+                    ctx.fillText('GAME OVER!', canvasWidth / 2, canvasHeight / 2 - 20);
+                }
+                ctx.fillStyle = 'white';
+                ctx.font = '16px "Press Start 2P"';
+                ctx.fillText("Press 'R' to restart", canvasWidth / 2, canvasHeight / 2 + 60);
+            }
+        }
+        drawStartScreen = function() {
+             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            ctx.fillStyle = 'white';
+            ctx.font = '24px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText("Earthquake Safety Drill", canvasWidth / 2, canvasHeight / 2 - 120);
+            ctx.font = '16px "Press Start 2P"';
+            ctx.fillText("Controls:", canvasWidth / 2, canvasHeight / 2 - 60);
+            ctx.fillText("Move: A/D or Arrow Keys", canvasWidth / 2, canvasHeight / 2 - 20);
+            ctx.fillText("Jump: W or Up Arrow", canvasWidth / 2, canvasHeight / 2 + 10);
+            ctx.fillText("Crouch: S or Down Arrow", canvasWidth / 2, canvasHeight / 2 + 40);
+            ctx.fillText("Exit Door: Enter", canvasWidth / 2, canvasHeight / 2 + 70);
+            ctx.font = '18px "Press Start 2P"';
+            ctx.fillStyle = '#2ecc71';
+            ctx.fillText("Press any key or tap to start", canvasWidth / 2, canvasHeight / 2 + 130);
+        }
+         createDebris = function() {
+            debris = [];
+            for (let i = 0; i < DEBRIS_COUNT; i++) {
+                debris.push({
+                    x: Math.random() * (canvasWidth - 40) + 20,
+                    y: -Math.random() * canvasHeight,
+                    width: Math.random() * 10 + 10,
+                    height: Math.random() * 10 + 10,
+                    dy: Math.random() * 3 + 2
+                });
+            }
+        }
+        showGameMessage = function(msg, duration = 3) {
+            gameMessage = msg;
+            messageTimer = duration;
+        }
+        winGame = function(msg) {
+            gameWon = true;
+            score = Math.floor(timer * 100);
+            showGameMessage(msg, 5);
+            isEarthquake = false;
+        }
+
+        init();
+    </script>
+</body>
+</html>
