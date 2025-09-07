@@ -236,6 +236,27 @@
     <small>&copy; <span id="year"></span> ResQverse. Educational prototype.</small>
   </footer>
 
+  <!-- Pincode Completion Modal -->
+  <dialog id="pincodeDialog" style="border:none;padding:0;max-width:380px;width:90%;border-radius:18px;">
+    <form method="dialog" id="pincodeForm" style="background:var(--surface);border:1px solid var(--border);padding:1.3rem 1.4rem 1.6rem;display:flex;flex-direction:column;gap:.9rem;border-radius:18px;font-family:var(--font-body)">
+      <h2 style="margin:0;font:600 1.05rem/1.2 var(--font-display);">Complete Your Profile</h2>
+      <p style="margin:0;font-size:.75rem;line-height:1.35;color:var(--text-soft)">Enter your 6-digit pincode (postal code) so we can tailor regional preparedness insights.</p>
+      <div style="display:flex;flex-direction:column;gap:.55rem;">
+        <label for="pincodeInput" style="font-size:.68rem;font-weight:600;letter-spacing:.05em;color:var(--text-faint);text-transform:uppercase;">Pincode</label>
+        <input id="pincodeInput" name="pincode" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" required style="padding:.6rem .7rem;border:1px solid var(--border);background:var(--surface-alt);color:var(--text);border-radius:10px;font:500 .8rem var(--font-body);">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.55rem;">
+        <label for="stateInput" style="font-size:.68rem;font-weight:600;letter-spacing:.05em;color:var(--text-faint);text-transform:uppercase;">State (optional)</label>
+        <input id="stateInput" name="state" type="text" placeholder="e.g. Maharashtra" style="padding:.6rem .7rem;border:1px solid var(--border);background:var(--surface-alt);color:var(--text);border-radius:10px;font:500 .8rem var(--font-body);">
+      </div>
+      <div id="pincodeError" style="display:none;color:var(--fire);font-size:.65rem;font-weight:500;"></div>
+      <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.4rem;">
+        <button value="cancel" type="reset" class="ghost-btn" style="font-size:.65rem;">Later</button>
+        <button type="submit" class="primary-btn" style="font-size:.65rem;">Save</button>
+      </div>
+    </form>
+  </dialog>
+
   <template id="moduleCardTemplate">
     <article class="module-card" role="listitem">
       <div class="color-bar" aria-hidden="true"></div>
@@ -255,6 +276,15 @@
       </div>
     </form>
   </dialog>
+
+  <script type="module">
+    // Lazy import firebase-auth for signOut bridging (non-blocking)
+    import { firebaseSignOut } from '/js/firebase-auth.js';
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+      try { await firebaseSignOut(); } catch(e) { /* ignore */ }
+      window.location.href = '/logout';
+    });
+  </script>
 
   <script>
     // Disaster Preparedness & Response Dashboard Interactivity
@@ -688,6 +718,48 @@
       initYear();
       initUserDropdown();
       styleTranslateDropdown();
+      // Prompt for missing pincode
+      const userPincodeEl = document.getElementById('userEmail')?.parentElement?.querySelector('.user-location');
+      const rawLocation = userPincodeEl ? userPincodeEl.textContent : '';
+      // Server renders pincode in template: Location: state, pincode
+      // We treat pincode '000000' or empty as incomplete
+      const needsPincode = /000000\b/.test(rawLocation || '') || /Location:.*?,\s*$/.test(rawLocation || '');
+      const dialog = document.getElementById('pincodeDialog');
+      if (needsPincode && dialog && !localStorage.getItem('pincodeDismissed')) {
+        setTimeout(()=>{ if(!dialog.open) dialog.showModal(); }, 600);
+      }
+      const form = document.getElementById('pincodeForm');
+      form?.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const pin = document.getElementById('pincodeInput').value.trim();
+        const state = document.getElementById('stateInput').value.trim();
+        const errBox = document.getElementById('pincodeError');
+        errBox.style.display='none';
+        if(!/^\d{6}$/.test(pin)) { errBox.textContent='Enter a valid 6 digit pincode.'; errBox.style.display='block'; return; }
+        try {
+          let res = await fetch('/api/user/pincode', { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify({ pincode: pin, state: state || undefined }) });
+          // If method not allowed on some proxies, retry with POST
+          if(res.status === 405) {
+            res = await fetch('/api/user/pincode', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify({ pincode: pin, state: state || undefined }) });
+          }
+          let data;
+          const text = await res.text();
+          try { data = JSON.parse(text); } catch(parseErr){ throw new Error(text.startsWith('<') ? 'Server returned HTML (possible auth redirect). Re-login.' : 'Bad response'); }
+          if(!data.success){ throw new Error(data.message || 'Update failed'); }
+          // Update dropdown display if exists
+          const locEl = document.querySelector('.user-location');
+          if(locEl){
+            const st = data.user.state || 'NA';
+            locEl.innerHTML = `<small>Location: ${st}, ${data.user.pincode}</small>`;
+          }
+          form.reset();
+          dialog.close();
+        } catch (err) {
+            errBox.textContent = err.message;
+            errBox.style.display='block';
+        }
+      });
+      form?.addEventListener('reset', ()=>{ localStorage.setItem('pincodeDismissed','1'); dialog.close(); });
     });
   </script>
 </body>

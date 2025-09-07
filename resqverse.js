@@ -5,6 +5,18 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const app = express();
+// Firebase Admin (for verifying ID tokens from client Firebase Auth)
+let admin;
+try {
+  admin = require('firebase-admin');
+  if (!admin.apps.length) {
+    // Uses Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS env var)
+    admin.initializeApp();
+  }
+  console.log('✅ Firebase Admin initialized');
+} catch (err) {
+  console.warn('⚠️ Firebase Admin not initialized. Provide service account credentials to enable Firebase Auth bridging. Error:', err.message);
+}
 const PORT = process.env.PORT || 3000;
 
 // MongoDB connection - remove deprecated options
@@ -18,7 +30,8 @@ const userSchema = new mongoose.Schema({
   email: String,
   state: String,
   pincode: String,
-  password: String
+  password: String, // hashed password for legacy / non-Firebase users
+  firebaseUid: { type: String, index: true } // link to Firebase Auth user
 });
 
 const User = mongoose.model('User', userSchema);
@@ -49,6 +62,12 @@ const requireAuth = (req, res, next) => {
     // User is not authenticated, redirect to login page
     res.redirect('/log');
   }
+};
+
+// API variant that returns JSON 401 instead of redirect
+const requireAuthApi = (req, res, next) => {
+  if (req.session.userId) return next();
+  return res.status(401).json({ success: false, message: 'Not authenticated' });
 };
 
 // Routes
@@ -157,7 +176,82 @@ app.get('/logout', (req, res) => {
   });
 });
 
+// POST: Firebase Auth session login
+app.post('/firebase-session-login', async (req, res) => {
+  if (!admin) return res.status(500).json({ success: false, message: 'Firebase Admin not configured on server.' });
+  const { idToken } = req.body;
+  if (!idToken) return res.status(400).json({ success: false, message: 'Missing idToken' });
+  try {
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const { uid, email } = decoded;
+    // Find or create local user record
+    let user = await User.findOne({ firebaseUid: uid });
+    if (!user) {
+      user = await User.findOne({ email });
+    }
+    if (!user) {
+      user = await User.create({
+        username: email ? email.split('@')[0] : uid,
+        email: email || `${uid}@example.invalid`,
+        state: 'NA',
+        pincode: '000000',
+        password: '',
+        firebaseUid: uid
+      });
+    } else if (!user.firebaseUid) {
+      user.firebaseUid = uid;
+      await user.save();
+    }
+    req.session.userId = user._id;
+    res.json({ success: true, message: '✅ Firebase login successful', redirect: '/dashboard' });
+  } catch (e) {
+    console.error('Firebase ID token verify error:', e);
+    res.status(401).json({ success: false, message: 'Invalid Firebase token' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+
+// PATCH: update pincode (and optionally state) after login if missing
+app.route('/api/user/pincode')
+  .all(requireAuthApi)
+  .patch(async (req, res) => {
+    const { pincode, state } = req.body;
+  console.log('[PINCODE PATCH] session:', req.session.id, 'userId:', req.session.userId, 'body:', req.body);
+    if (!pincode || !/^\d{6}$/.test(pincode)) {
+      return res.status(400).json({ success: false, message: 'Invalid pincode. Must be 6 digits.' });
+    }
+    try {
+      const user = await User.findById(req.session.userId);
+      if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+      user.pincode = pincode;
+      if (state) user.state = state;
+      await user.save();
+      res.json({ success: true, message: 'Pincode updated', user: { pincode: user.pincode, state: user.state } });
+    } catch (err) {
+      console.error('Update pincode error:', err);
+      res.status(500).json({ success: false, message: 'Server error updating pincode' });
+    }
+  })
+  .post(async (req, res) => {
+    // POST behaves same as PATCH for flexibility
+    const { pincode, state } = req.body;
+  console.log('[PINCODE POST] session:', req.session.id, 'userId:', req.session.userId, 'body:', req.body);
+    if (!pincode || !/^\d{6}$/.test(pincode)) {
+      return res.status(400).json({ success: false, message: 'Invalid pincode. Must be 6 digits.' });
+    }
+    try {
+      const user = await User.findById(req.session.userId);
+      if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+      user.pincode = pincode;
+      if (state) user.state = state;
+      await user.save();
+      res.json({ success: true, message: 'Pincode updated', user: { pincode: user.pincode, state: user.state } });
+    } catch (err) {
+      console.error('Update pincode error:', err);
+      res.status(500).json({ success: false, message: 'Server error updating pincode' });
+    }
+  });

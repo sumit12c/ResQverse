@@ -196,6 +196,34 @@
         top: 0;
     }
 
+    .google-oauth-btn {
+        width:100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:10px;
+        background:#ffffff;
+        color:#1a1a1a ;
+        border:2px solid #ffffff;
+        border-radius:40px;
+        font-weight:600;
+        font-size:15px;
+        cursor:pointer;
+        height:45px;
+        position:relative;
+        transition:.25s;
+    }
+    .google-oauth-btn:hover { box-shadow:0 4px 14px -4px rgba(255,255,255,0.4); transform:translateY(-2px); }
+    .google-oauth-btn:active { transform:translateY(0); }
+    .google-oauth-btn .g-icon-wrapper { display:flex; align-items:center; }
+    .google-oauth-btn svg { display:block; }
+
+    .g-btn-label {
+        font-weight: 600;
+        font-size: 15px;
+        color: #1a1a1a;
+    }
+
     .regi-link {
         font-size: 14px;
         text-align: center;
@@ -429,6 +457,15 @@
   <div class="animation" style="--D:3; --S:24">
     <button class="btn" type="submit">Login</button>
   </div>
+    <!-- Explicit Google Sign-In Button -->
+    <div class="animation" style="--D:3; --S:24; margin-top:10px;">
+        <button type="button" id="googleSignInBtn" class="google-oauth-btn">
+            <span class="g-icon-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.988h11.52c.096.552.144 1.2.144 1.8 0 6.168-4.128 10.56-11.664 10.56A12 12 0 0 1 0 12 12 12 0 0 1 12 0c3.24 0 5.952 1.104 8.064 3.168l-3.456 3.312C15.408 5.04 13.824 4.44 12 4.44c-4.176 0-7.488 3.504-7.488 7.56 0 4.128 3.312 7.56 7.488 7.56 3.6 0 5.904-1.92 6.384-4.56H12v-2.952Z"/></svg>
+            </span>
+            <span class="g-btn-label">Continue with Google</span>
+        </button>
+    </div>
   <div class="regi-link animation" style="--D:4; --S:25">
       <p>Don't have an account? <br> <a href="#" class="SignUpLink">Sign Up</a></p>
   </div>
@@ -515,6 +552,15 @@
   <div class="animation" style="--li:23; --S:6">
     <button class="btn" type="submit">Register</button>
   </div>
+    <!-- Explicit Google Sign-Up Button -->
+    <div class="animation" style="--li:23; --S:6; margin-top:10px;">
+        <button type="button" id="googleSignUpBtn" class="google-oauth-btn">
+            <span class="g-icon-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.988h11.52c.096.552.144 1.2.144 1.8 0 6.168-4.128 10.56-11.664 10.56A12 12 0 0 1 0 12 12 12 0 0 1 12 0c3.24 0 5.952 1.104 8.064 3.168l-3.456 3.312C15.408 5.04 13.824 4.44 12 4.44c-4.176 0-7.488 3.504-7.488 7.56 0 4.128 3.312 7.56 7.488 7.56 3.6 0 5.904-1.92 6.384-4.56H12v-2.952Z"/></svg>
+            </span>
+            <span class="g-btn-label">Continue with Google</span>
+        </button>
+    </div>
 
   <div class="regi-link animation" style="--li:24; --S:7">
     <p>Already have an account? <br> <a href="#" class="SignInLink">Sign In</a></p>
@@ -531,6 +577,12 @@
     <div id="notification" class="notification"></div>
 
     <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
+    <style>
+      /* Lightweight styling enhancement for Google button */
+      .google-login-btn { border-color:#4285F4; }
+      .google-login-btn:hover { background:#4285F4; }
+      .google-login-btn svg { display:block; }
+    </style>
 
     <script>
         const container = document.querySelector('.container');
@@ -631,6 +683,6 @@
             }
         });
     </script>
-
+    <script type="module" src="/js/firebase-auth.js"></script>
 </body>
 </html>
