@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin | ResQverse</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin:0; background:#0f1418; color:#e6ebf0; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; background:#182026; border-bottom:1px solid #24313b; }
+    h1 { font-size:1.1rem; margin:0; letter-spacing:.5px; }
+    main { max-width:1000px; margin:1.5rem auto 3rem; padding:0 1.25rem; display:grid; gap:2rem; }
+    .card { background:#182026; border:1px solid #24313b; border-radius:14px; padding:1.1rem 1.2rem 1.3rem; box-shadow:0 2px 6px rgba(0,0,0,.35); }
+    .card h2 { margin:.1rem 0 1rem; font-size:.95rem; letter-spacing:.08em; text-transform:uppercase; font-weight:600; color:#91a7b7; }
+    label { display:block; font-size:.65rem; font-weight:600; letter-spacing:.06em; margin-bottom:.35rem; text-transform:uppercase; color:#7f97a8; }
+    input, select, textarea { width:100%; background:#121a20; color:#e6ebf0; border:1px solid #2a3944; border-radius:10px; padding:.6rem .7rem; font:500 .8rem system-ui; resize:vertical; }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:#4d7ae3; box-shadow:0 0 0 2px rgba(77,122,227,.25); }
+    textarea { min-height:90px; }
+    .row { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+    .actions { display:flex; gap:.75rem; justify-content:flex-end; margin-top:1rem; }
+    button { cursor:pointer; border:1px solid #4d7ae3; background:#4d7ae3; color:#fff; font:600 .75rem system-ui; padding:.65rem 1.15rem; border-radius:10px; letter-spacing:.05em; display:inline-flex; align-items:center; gap:.45rem; }
+    button.secondary { background:#121a20; color:#cdd8df; border-color:#2a3944; }
+    button:hover { filter:brightness(1.08); }
+    button:active { transform:translateY(1px); }
+    .alert-list { display:flex; flex-direction:column; gap:.75rem; margin-top:.5rem; }
+    .alert-item { border:1px solid #2a3944; border-radius:12px; padding:.75rem .85rem; background:#121a20; display:grid; gap:.4rem; }
+    .alert-item header { padding:0; background:none; border:none; display:flex; justify-content:space-between; align-items:center; box-shadow:none; }
+    .pill { display:inline-flex; align-items:center; gap:.35rem; font-size:.55rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; padding:.35rem .55rem; border-radius:20px; background:#24313b; color:#9eb4c1; }
+    .pill.sev-info { background:#1d2530; color:#8ea4b2; }
+    .pill.sev-advisory { background:#28361c; color:#a5d475; }
+    .pill.sev-warning { background:#3a2d13; color:#f5c15b; }
+    .pill.sev-critical { background:#422024; color:#f28a96; }
+    .empty { font-size:.7rem; color:#6d808c; font-style:italic; }
+    .status { font-size:.65rem; margin-top:.5rem; min-height:1.1rem; }
+    .status.error { color:#f28a96; }
+    .status.ok { color:#79c585; }
+    a.nav { color:#9eb4c1; font-size:.7rem; text-decoration:none; }
+    a.nav:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ResQverse Admin</h1>
+    <nav style="display:flex;align-items:center;gap:1rem;">
+      <a class="nav" href="/dashboard">← Dashboard</a>
+      <a class="nav" href="/logout">Logout</a>
+    </nav>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Create Disaster Alert</h2>
+      <form id="alertForm">
+        <div class="row">
+          <div>
+            <label for="pincode">Pincode</label>
+            <input id="pincode" name="pincode" type="text" maxlength="6" pattern="\d{6}" required />
+          </div>
+          <div>
+            <label for="type">Type</label>
+            <select id="type" name="type" required>
+              <option value="fire">Fire</option>
+              <option value="earthquake">Earthquake</option>
+              <option value="flood">Flood</option>
+              <option value="pandemic">Pandemic</option>
+              <option value="cyclone">Cyclone</option>
+              <option value="landslide">Landslide</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="severity">Severity</label>
+            <select id="severity" name="severity">
+              <option value="info">Info</option>
+              <option value="advisory">Advisory</option>
+              <option value="warning">Warning</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" placeholder="Concise actionable information..." required></textarea>
+        </div>
+        <div class="actions">
+          <button type="reset" class="secondary">Clear</button>
+          <button type="submit">Publish Alert</button>
+        </div>
+        <div id="formStatus" class="status"></div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Recent Alerts</h2>
+      <div id="alerts" class="alert-list">
+        <% if (!alerts || alerts.length === 0) { %>
+          <div class="empty">No alerts yet.</div>
+        <% } else { %>
+          <% alerts.forEach(a => { %>
+            <div class="alert-item" data-id="<%= a._id %>">
+              <header>
+                <div style="display:flex;align-items:center;gap:.5rem;">
+                  <span class="pill sev-<%= a.severity %>"><%= a.severity %></span>
+                  <span class="pill"><%= a.type %></span>
+                  <span style="font-size:.6rem;color:#6d808c;">PIN: <strong><%= a.pincode %></strong></span>
+                </div>
+                <span style="font-size:.55rem;color:#5d6d79;"><%= new Date(a.createdAt).toLocaleString() %></span>
+              </header>
+              <div style="font-size:.75rem;line-height:1.35;white-space:pre-wrap;"> <%= a.message %> </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('alertForm');
+    const statusEl = document.getElementById('formStatus');
+    const listEl = document.getElementById('alerts');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.textContent = 'Publishing...';
+      statusEl.className = 'status';
+      const data = Object.fromEntries(new FormData(form).entries());
+      if(!/^\d{6}$/.test(data.pincode)) { statusEl.textContent='Invalid pincode'; statusEl.classList.add('error'); return; }
+      try {
+        const res = await fetch('/admin/alerts', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        const json = await res.json();
+        if(!json.success) throw new Error(json.message || 'Failed');
+        statusEl.textContent = '✅ Alert published';
+        statusEl.classList.add('ok');
+        form.reset();
+        prependAlert(json.alert);
+      } catch(err){
+        statusEl.textContent = err.message;
+        statusEl.classList.add('error');
+      }
+    });
+
+    function prependAlert(a){
+      if(listEl.querySelector('.empty')) listEl.innerHTML='';
+      const div = document.createElement('div');
+      div.className = 'alert-item';
+      div.innerHTML = `\n        <header>\n          <div style="display:flex;align-items:center;gap:.5rem;">\n            <span class="pill sev-${a.severity}">${a.severity}</span>\n            <span class="pill">${a.type}</span>\n            <span style="font-size:.6rem;color:#6d808c;">PIN: <strong>${a.pincode}</strong></span>\n          </div>\n          <span style="font-size:.55rem;color:#5d6d79;">${new Date(a.createdAt).toLocaleString()}</span>\n        </header>\n        <div style="font-size:.75rem;line-height:1.35;white-space:pre-wrap;"> ${a.message} </div>\n      `;
+      listEl.prepend(div);
+    }
+  </script>
+</body>
+</html>

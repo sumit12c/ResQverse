@@ -31,10 +31,24 @@ const userSchema = new mongoose.Schema({
   state: String,
   pincode: String,
   password: String, // hashed password for legacy / non-Firebase users
-  firebaseUid: { type: String, index: true } // link to Firebase Auth user
+  firebaseUid: { type: String, index: true }, // link to Firebase Auth user
+  isAdmin: { type: Boolean, default: false }
 });
 
 const User = mongoose.model('User', userSchema);
+
+// Alert schema for disaster updates
+const alertSchema = new mongoose.Schema({
+  pincode: { type: String, required: true, index: true },
+  type: { type: String, required: true, enum: ['fire','earthquake','flood','pandemic','cyclone','landslide','other'] },
+  severity: { type: String, enum: ['info','advisory','warning','critical'], default: 'info' },
+  message: { type: String, required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+alertSchema.index({ pincode: 1, createdAt: -1 });
+const Alert = mongoose.model('Alert', alertSchema);
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -70,6 +84,20 @@ const requireAuthApi = (req, res, next) => {
   return res.status(401).json({ success: false, message: 'Not authenticated' });
 };
 
+// Admin middleware
+const requireAdmin = async (req, res, next) => {
+  try {
+    if (!req.session.userId) return res.status(403).send('Forbidden');
+    const u = await User.findById(req.session.userId).lean();
+    if (!u || !u.isAdmin) return res.status(403).send('Forbidden');
+    req.currentUser = u;
+    next();
+  } catch (e) {
+    console.error('Admin check error', e);
+    return res.status(500).send('Server error');
+  }
+};
+
 // Routes
 
 // GET: Home (Login/Register Page)
@@ -99,6 +127,27 @@ app.get('/dashboard', requireAuth, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send('Error loading dashboard');
+  }
+});
+
+// Admin panel (basic) - requires user.isAdmin=true
+app.get('/admin', requireAdmin, async (req, res) => {
+  const latest = await Alert.find().sort({ createdAt: -1 }).limit(20).lean();
+  res.render('admin', { alerts: latest, user: req.currentUser });
+});
+
+// Create alert
+app.post('/admin/alerts', requireAdmin, async (req, res) => {
+  try {
+    const { pincode, type, message, severity } = req.body;
+    if (!/^\d{6}$/.test(pincode || '')) return res.status(400).json({ success:false, message:'Invalid 6-digit pincode' });
+    if (!type) return res.status(400).json({ success:false, message:'Type required' });
+    if (!message || message.length < 5) return res.status(400).json({ success:false, message:'Message too short' });
+    const alert = await Alert.create({ pincode, type, message, severity: severity || 'info', createdBy: req.currentUser._id });
+    res.json({ success:true, alert });
+  } catch (err) {
+    console.error('Create alert error', err);
+    res.status(500).json({ success:false, message:'Server error' });
   }
 });
 
