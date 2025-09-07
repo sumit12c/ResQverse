@@ -5,404 +5,407 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Full-Screen Animated Login & Register Form</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-            color: #fff;
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+        color: #fff;
+    }
+
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #25252b;
+        overflow: hidden;
+    }
+
+    .container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        border: 2px solid #4774d4;
+        box-shadow: 0 0 25px #052f9a;
+        overflow: hidden;
+    }
+
+    .container .form-box {
+        position: absolute;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .form-box.Login {
+        left: 0;
+        padding: 0 60px;
+    }
+
+    .form-box.Login .animation {
+        transform: translateX(0%);
+        transition: .7s;
+        opacity: 1;
+        transition-delay: calc(.1s * var(--S));
+    }
+
+    .container.active .form-box.Login .animation {
+        transform: translateX(-120%);
+        opacity: 0;
+        transition-delay: calc(.1s * var(--D));
+    }
+
+    .form-box.Register {
+        right: 0;
+        padding: 0 60px;
+    }
+
+    .form-box.Register .animation {
+        transform: translateX(120%);
+        transition: .7s ease;
+        opacity: 0;
+        filter: blur(10px);
+        transition-delay: calc(.1s * var(--S));
+    }
+
+    .container.active .form-box.Register .animation {
+        transform: translateX(0%);
+        opacity: 1;
+        filter: blur(0px);
+        transition-delay: calc(.1s * var(--li));
+    }
+
+    .form-box h2 {
+        font-size: 32px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .form-box .input-box {
+        position: relative;
+        width: 100%;
+        height: 50px;
+        margin-top: 25px;
+    }
+
+    .input-box input, .input-box select {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        color: #fff;
+        font-weight: 500;
+        border-bottom: 2px solid #fff;
+        padding-right: 35px;
+        padding-top: 15px;
+        transition: .5s;
+    }
+    
+    /* Added for select dropdown styling */
+    .input-box select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        cursor: pointer;
+    }
+    
+    .input-box select option {
+        background: #25252b;
+        color: #fff;
+    }
+    
+    .input-box input:focus,
+    .input-box input:valid,
+    .input-box select:focus,
+    .input-box select:valid {
+        border-bottom: 2px solid #e46033;
+    }
+
+    .input-box label {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #fff;
+        transition: .5s;
+        pointer-events: none;
+    }
+    
+    .input-box input:focus ~ label,
+    .input-box input:valid ~ label,
+    .input-box select:focus ~ label,
+    .input-box select:valid ~ label {
+        top: -5px;
+        font-size: 14px;
+        color: #3371e4;
+    }
+
+    .input-box box-icon {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        font-size: 18px;
+        transform: translateY(-50%);
+        color: #fff;
+    }
+
+    .input-box input:focus ~ box-icon,
+    .input-box input:valid ~ box-icon,
+    .input-box select:focus ~ box-icon,
+    .input-box select:valid ~ box-icon {
+        color: #3380e4;
+    }
+    
+    .btn {
+        position: relative;
+        width: 100%;
+        height: 45px;
+        background: transparent;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        border: 2px solid #3365e4;
+        overflow: hidden;
+        z-index: 1;
+        margin-top: 20px;
+    }
+
+    .btn::before {
+        content: "";
+        position: absolute;
+        height: 300%;
+        width: 100%;
+        background: linear-gradient(#25252b, #33a0e4, #25252b, #337ae4);
+        top: -100%;
+        left: 0;
+        z-index: -1;
+        transition: .5s;
+    }
+
+    .btn:hover:before {
+        top: 0;
+    }
+
+    .regi-link {
+        font-size: 14px;
+        text-align: center;
+        margin: 25px 0 10px;
+    }
+
+    .regi-link a {
+        text-decoration: none;
+        color: #e46033;
+        font-weight: 600;
+    }
+
+    .regi-link a:hover {
+        text-decoration: underline;
+    }
+
+    .info-content {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 50%;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .info-content.Login {
+        right: 0;
+        text-align: right;
+        padding: 0 60px 60px 120px;
+    }
+
+    .info-content.Login .animation {
+        transform: translateX(0);
+        transition: .7s ease;
+        transition-delay: calc(.1s * var(--S));
+        opacity: 1;
+        filter: blur(0px);
+    }
+
+    .container.active .info-content.Login .animation {
+        transform: translateX(120%);
+        opacity: 0;
+        filter: blur(10px);
+        transition-delay: calc(.1s * var(--D));
+    }
+
+    .info-content.Register {
+        left: 0;
+        text-align: left;
+        padding: 0 150px 60px 38px;
+        pointer-events: none;
+    }
+
+    .info-content.Register .animation {
+        transform: translateX(-120%);
+        transition: .7s ease;
+        opacity: 0;
+        filter: blur(10PX);
+        transition-delay: calc(.1s * var(--S));
+    }
+
+    .container.active .info-content.Register .animation {
+        transform: translateX(0%);
+        opacity: 1;
+        filter: blur(0);
+        transition-delay: calc(.1s * var(--li));
+    }
+
+    .info-content h2 {
+        text-transform: uppercase;
+        font-size: 36px;
+        line-height: 1.3;
+    }
+
+    .info-content p {
+        font-size: 16px;
+    }
+
+    .container .curved-shape {
+        position: absolute;
+        right: 0;
+        top: -5px;
+        height: 600px;
+        width: 850px;
+        background: linear-gradient(45deg, #25252b, #33dbe4);
+        transform: rotate(10deg) skewY(40deg);
+        transform-origin: bottom right;
+        transition: 1.5s ease;
+        transition-delay: 1.6s;
+    }
+
+    .container.active .curved-shape {
+        transform: rotate(0deg) skewY(0deg);
+        transition-delay: .5s;
+    }
+
+    .container .curved-shape2 {
+        position: absolute;
+        left: 250px;
+        top: 100%;
+        height: 700px;
+        width: 850px;
+        background: #25252b;
+        border-top: 3px solid #386fdc;
+        transform: rotate(0deg) skewY(0deg);
+        transform-origin: bottom left;
+        transition: 1.5s ease;
+        transition-delay: .5s;
+    }
+
+    .container.active .curved-shape2 {
+        transform: rotate(-11deg) skewY(-41deg);
+        transition-delay: 1.2s;
+    }
+    /* Add notification styles */
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background-color: #333;
+        color: white;
+        border-radius: 5px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: opacity 0.3s, transform 0.3s;
+        max-width: 350px;
+    }
+    
+    .notification.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .notification.success {
+        background-color: #4CAF50;
+    }
+    
+    .notification.error {
+        background-color: #f44336;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .info-content.Login {
+            padding: 0 30px 60px 100px;
         }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #25252b;
-            overflow: hidden;
+        
+        .info-content.Register {
+            padding: 0 100px 60px 30px;
         }
+    }
 
-        .container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            border: 2px solid #4774d4;
-            box-shadow: 0 0 25px #052f9a;
-            overflow: hidden;
-        }
-
-        .container .form-box {
-            position: absolute;
-            top: 0;
-            width: 50%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .form-box.Login {
-            left: 0;
+    @media (max-width: 992px) {
+        .form-box.Login, 
+        .form-box.Register {
             padding: 0 40px;
         }
-
-        .form-box.Login .animation {
-            transform: translateX(0%);
-            transition: .7s;
-            opacity: 1;
-            transition-delay: calc(.1s * var(--S));
-        }
-
-        .container.active .form-box.Login .animation {
-            transform: translateX(-120%);
-            opacity: 0;
-            transition-delay: calc(.1s * var(--D));
-        }
-
-        .form-box.Register {
-            right: 0;
-            padding: 0 60px;
-        }
-
-        .form-box.Register .animation {
-            transform: translateX(120%);
-            transition: .7s ease;
-            opacity: 0;
-            filter: blur(10px);
-            transition-delay: calc(.1s * var(--S));
-        }
-
-        .container.active .form-box.Register .animation {
-            transform: translateX(0%);
-            opacity: 1;
-            filter: blur(0px);
-            transition-delay: calc(.1s * var(--li));
-        }
-
-        .form-box h2 {
-            font-size: 32px;
-            text-align: center;
-        }
-
-        .form-box .input-box {
-            position: relative;
-            width: 100%;
-            height: 50px;
-            margin-top: 25px;
-        }
-
-        .input-box input, .input-box select {
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            font-size: 16px;
-            color: #fff;
-            font-weight: 600;
-            border-bottom: 2px solid #fff;
-            padding-right: 23px;
-            transition: .5s;
-        }
         
-        /* Added for select dropdown styling */
-        .input-box select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            cursor: pointer;
-        }
-        
-        .input-box select option {
-            background: #25252b;
-            color: #fff;
-        }
-        
-        .input-box input:focus,
-        .input-box input:valid,
-        .input-box select:focus,
-        .input-box select:valid {
-            border-bottom: 2px solid #e46033;
-        }
-
-        .input-box label {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            font-size: 16px;
-            color: #fff;
-            transition: .5s;
-            pointer-events: none; /* So you can click through the label */
-        }
-        
-        .input-box input:focus~label,
-        .input-box input:valid~label,
-        .input-box select:focus~label,
-        .input-box select:valid~label {
-            top: -5px;
-            color: #3371e4;
-        }
-
-        .input-box box-icon {
-            position: absolute;
-            top: 50%;
-            right: 0;
-            font-size: 18px;
-            transform: translateY(-50%);
-            color: #fff;
-        }
-
-        .input-box input:focus~box-icon,
-        .input-box input:valid~box-icon,
-        .input-box select:focus~box-icon,
-        .input-box select:valid~box-icon {
-            color: #3380e4;
-        }
-        
-        .btn {
-            position: relative;
-            width: 100%;
-            height: 45px;
-            background: transparent;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            border: 2px solid #3365e4;
-            overflow: hidden;
-            z-index: 1;
-            margin-top: 10px;
-        }
-
-        .btn::before {
-            content: "";
-            position: absolute;
-            height: 300%;
-            width: 100%;
-            background: linear-gradient(#25252b, #33a0e4, #25252b, #337ae4);
-            top: -100%;
-            left: 0;
-            z-index: -1;
-            transition: .5s;
-        }
-
-        .btn:hover:before {
-            top: 0;
-        }
-
-        .regi-link {
-            font-size: 14px;
-            text-align: center;
-            margin: 20px 0 10px;
-        }
-
-        .regi-link a {
-            text-decoration: none;
-            color: #e46033;
-            font-weight: 600;
-        }
-
-        .regi-link a:hover {
-            text-decoration: underline;
-        }
-
-        .info-content {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            width: 50%;
-            display: flex;
-            justify-content: center;
-            flex-direction: column;
-        }
-
         .info-content.Login {
-            right: 0;
-            text-align: right;
-            padding: 0 40px 60px 150px;
+            padding: 0 30px 40px 80px;
         }
-
-        .info-content.Login .animation {
-            transform: translateX(0);
-            transition: .7s ease;
-            transition-delay: calc(.1s * var(--S));
-            opacity: 1;
-            filter: blur(0px);
-        }
-
-        .container.active .info-content.Login .animation {
-            transform: translateX(120%);
-            opacity: 0;
-            filter: blur(10px);
-            transition-delay: calc(.1s * var(--D));
-        }
-
+        
         .info-content.Register {
-            left: 0;
-            text-align: left;
-            padding: 0 150px 60px 38px;
-            pointer-events: none;
+            padding: 0 80px 40px 30px;
         }
-
-        .info-content.Register .animation {
-            transform: translateX(-120%);
-            transition: .7s ease;
-            opacity: 0;
-            filter: blur(10PX);
-            transition-delay: calc(.1s * var(--S));
-        }
-
-        .container.active .info-content.Register .animation {
-            transform: translateX(0%);
-            opacity: 1;
-            filter: blur(0);
-            transition-delay: calc(.1s * var(--li));
-        }
-
+        
         .info-content h2 {
-            text-transform: uppercase;
-            font-size: 36px;
-            line-height: 1.3;
+            font-size: 30px;
         }
+    }
 
-        .info-content p {
-            font-size: 16px;
+    @media (max-width: 768px) {
+        .form-box.Login, 
+        .form-box.Register {
+            width: 100%;
+            padding: 0 40px;
         }
-
-        .container .curved-shape {
-            position: absolute;
-            right: 0;
-            top: -5px;
-            height: 600px;
-            width: 850px;
-            background: linear-gradient(45deg, #25252b, #33dbe4);
-            transform: rotate(10deg) skewY(40deg);
-            transform-origin: bottom right;
-            transition: 1.5s ease;
-            transition-delay: 1.6s;
+        
+        .info-content {
+            display: none;
         }
-
-        .container.active .curved-shape {
-            transform: rotate(0deg) skewY(0deg);
-            transition-delay: .5s;
+        
+        .form-box.Register {
+            transform: translateX(100%);
         }
-
-        .container .curved-shape2 {
-            position: absolute;
-            left: 250px;
-            top: 100%;
-            height: 700px;
-            width: 850px;
-            background: #25252b;
-            border-top: 3px solid #386fdc;
-            transform: rotate(0deg) skewY(0deg);
-            transform-origin: bottom left;
-            transition: 1.5s ease;
-            transition-delay: .5s;
+        
+        .container.active .form-box.Register {
+            transform: translateX(0);
         }
-
-        .container.active .curved-shape2 {
-            transform: rotate(-11deg) skewY(-41deg);
-            transition-delay: 1.2s;
+        
+        .curved-shape,
+        .curved-shape2 {
+            display: none;
         }
-        /* Add notification styles */
+         /* Notification responsive styles for mobile */
         .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background-color: #333;
-            color: white;
-            border-radius: 5px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.3s, transform 0.3s;
-            max-width: 350px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+            text-align: center;
+            padding: 12px 15px;
+            font-size: 14px;
         }
         
-        .notification.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .notification.success {
-            background-color: #4CAF50;
-        }
-        
-        .notification.error {
-            background-color: #f44336;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 1200px) {
-            .info-content.Login {
-                padding: 0 30px 60px 100px;
-            }
-            
-            .info-content.Register {
-                padding: 0 100px 60px 30px;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .form-box.Login, 
-            .form-box.Register {
-                padding: 0 30px;
-            }
-            
-            .info-content.Login {
-                padding: 0 30px 40px 80px;
-            }
-            
-            .info-content.Register {
-                padding: 0 80px 40px 30px;
-            }
-            
-            .info-content h2 {
-                font-size: 30px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .form-box.Login, 
-            .form-box.Register {
-                width: 100%;
-                padding: 0 40px;
-            }
-            
-            .info-content {
-                display: none;
-            }
-            
-            .form-box.Register {
-                transform: translateX(100%);
-            }
-            
-            .container.active .form-box.Register {
-                transform: translateX(0);
-            }
-            
-            .curved-shape,
-            .curved-shape2 {
-                display: none;
-            }
-             /* Notification responsive styles for mobile */
-            .notification {
-                right: 10px;
-                left: 10px;
-                max-width: none;
-                text-align: center;
-                padding: 12px 15px;
-                font-size: 14px;
-            }
-            
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
     <div class="container">
@@ -415,11 +418,13 @@
     <input type="text" name="username" required>
     <label>Username</label>
   </div>
+  <br>
 
   <div class="input-box animation" style="--D:2; --S:23">
     <input type="password" name="password" required>
     <label>Password</label>
   </div>
+  <br>
 
   <div class="animation" style="--D:3; --S:24">
     <button class="btn" type="submit">Login</button>
