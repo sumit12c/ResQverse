@@ -5,30 +5,18 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const app = express();
-
 // Firebase Admin (for verifying ID tokens from client Firebase Auth)
 let admin;
 try {
   admin = require('firebase-admin');
-
   if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      }),
-    });
+    // Uses Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS env var)
+    admin.initializeApp();
   }
-
   console.log('✅ Firebase Admin initialized');
 } catch (err) {
-  console.warn(
-    '⚠️ Firebase Admin not initialized. Provide service account credentials to enable Firebase Auth bridging. Error:',
-    err.message
-  );
+  console.warn('⚠️ Firebase Admin not initialized. Provide service account credentials to enable Firebase Auth bridging. Error:', err.message);
 }
-
 const PORT = process.env.PORT || 3000;
 
 // MongoDB connection - remove deprecated options
