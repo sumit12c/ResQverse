@@ -1,0 +1,45 @@
+{
+    "version": 2,
+    "name": "resqverse",
+    "env": {
+        "NODE_ENV": "production"
+    },
+    "build": {
+        "env": {
+            "NEXT_TELEMETRY_DISABLED": "1"
+        }
+    },
+    "installCommand": "npm install",
+    "buildCommand": "npm run build",
+    "outputDirectory": "build",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "headers": [
+        {
+            "source": "/(.*)\\.(js|css)",
+            "headers": [
+                { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+            ]
+        },
+        {
+            "source": "/api/(.*)",
+            "headers": [
+                { "key": "Cache-Control", "value": "no-store" }
+            ]
+        }
+    ],
+    "redirects": [
+        { "source": "/old-route", "destination": "/new-route", "permanent": true }
+    ],
+    "rewrites": [
+        { "source": "/api/(.*)", "destination": "/api/$1" }
+    ],
+    "routes": [
+        { "handle": "filesystem" },
+        { "src": "/api/(.*)", "dest": "/api/$1.js" },
+        { "src": "/(.*)", "dest": "/index.html" }
+    ],
+    "analytics": {
+        "enabled": true
+    }
+}
