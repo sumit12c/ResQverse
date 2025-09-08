@@ -112,6 +112,24 @@
     .module-desc { margin:0; font-size:.68rem; line-height:1.3; color: var(--text-soft); }
     .open-btn { align-self:start; margin-top:auto; }
 
+  /* Emergency Alerts */
+  .alerts-section { display:flex; flex-direction:column; gap:1.1rem; }
+  .alerts-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.75rem; }
+  .alerts-grid { display:grid; gap:1rem; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); }
+  .alert-card { position:relative; background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg); padding:1rem .95rem 1.05rem; display:flex; flex-direction:column; gap:.55rem; box-shadow: var(--shadow-sm); overflow:hidden; }
+  .alert-card:before { content:""; position:absolute; inset:0; background: linear-gradient(140deg,var(--c1),var(--c2)); opacity:.14; pointer-events:none; }
+  .alert-meta { display:flex; align-items:center; gap:.5rem; font-size:.6rem; letter-spacing:.05em; text-transform:uppercase; font-weight:600; color: var(--text-faint); }
+  .alert-level { display:inline-flex; align-items:center; gap:.3rem; padding:.3rem .55rem; font:600 .55rem/1 var(--font-display); border-radius: 999px; background: var(--surface-alt); border:1px solid var(--border); letter-spacing:.05em; }
+  .level-critical { background: var(--fire); border-color: var(--fire); color:#fff; }
+  .level-watch { background: var(--flood); border-color: var(--flood); color:#fff; }
+  .level-advisory { background: var(--quake); border-color: var(--quake); color:#fff; }
+  .alert-title { margin:0; font:600 .9rem/1.2 var(--font-display); letter-spacing:.3px; }
+  .alert-body { margin:0; font-size:.7rem; line-height:1.35; color: var(--text-soft); }
+  .alert-tags { display:flex; flex-wrap:wrap; gap:.35rem; margin:.15rem 0 0; }
+  .alert-tag { font:500 .55rem/1 var(--font-display); padding:.35rem .55rem; border:1px solid var(--border); background: var(--surface-alt); border-radius: 999px; letter-spacing:.05em; }
+  .alerts-empty { font-size:.7rem; color: var(--text-faint); font-style:italic; }
+  @media (min-width:1000px){ .alerts-grid { grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); } }
+
     /* Footer */
     .app-footer { margin-top:auto; padding:1.2rem 1.25rem 2rem; background: var(--surface); border-top:1px solid var(--border); display:flex; flex-direction:column; gap:1rem; align-items:center; }
     .quick-links { display:flex; gap:.6rem; flex-wrap:wrap; }
@@ -229,6 +247,57 @@
       <div class="modules-grid" id="modulesGrid" role="list">
         <!-- Cards injected by JS -->
       </div>
+    </section>
+    
+    <!-- Static sample Emergency Alerts (no live backend calls) -->
+    <section class="alerts-section" aria-labelledby="alertsHeading">
+      <div class="alerts-header">
+        <h2 id="alertsHeading" class="section-title" style="margin:0">Emergency Alerts</h2>
+        <span style="font-size:.6rem; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); font-weight:600;">Sample Data</span>
+      </div>
+      <div class="alerts-grid" role="list">
+        <!-- Alert 1 -->
+        <article class="alert-card" role="listitem" style="--c1:#f59e0b;--c2:#eab308;">
+          <div class="alert-meta">
+            <span class="alert-level level-advisory">Advisory</span>
+            <time datetime="2025-02-10T06:30:00Z">10 Feb • 12:00 IST</time>
+          </div>
+          <h3 class="alert-title">Minor Tremors Recorded</h3>
+          <p class="alert-body">Light seismic activity detected. No structural risk expected, but secure loose objects and review your Drop-Cover-Hold plan.</p>
+          <div class="alert-tags">
+            <span class="alert-tag">Earthquake</span>
+            <span class="alert-tag">Awareness</span>
+          </div>
+        </article>
+        <!-- Alert 2 -->
+        <article class="alert-card" role="listitem" style="--c1:#0ea5e9;--c2:#0284c7;">
+          <div class="alert-meta">
+            <span class="alert-level level-watch">Watch</span>
+            <time datetime="2025-02-10T04:15:00Z">10 Feb • 10:45 IST</time>
+          </div>
+            <h3 class="alert-title">Flood Watch – Low River Rise</h3>
+            <p class="alert-body">Upstream rainfall may elevate water levels in the next 6–8 hours. Move valuables above ground level and avoid low underpasses.</p>
+            <div class="alert-tags">
+              <span class="alert-tag">Flood</span>
+              <span class="alert-tag">Preparation</span>
+            </div>
+        </article>
+        <!-- Alert 3 -->
+        <article class="alert-card" role="listitem" style="--c1:#ef4444;--c2:#f97316;">
+          <div class="alert-meta">
+            <span class="alert-level level-critical">Critical</span>
+            <time datetime="2025-02-10T03:40:00Z">10 Feb • 10:10 IST</time>
+          </div>
+            <h3 class="alert-title">Industrial Fire – Air Quality Risk</h3>
+            <p class="alert-body">Smoke from an industrial fire drifting toward residential blocks. Close windows, switch off ventilation intakes, and keep masks ready if outdoors.</p>
+            <div class="alert-tags">
+              <span class="alert-tag">Fire</span>
+              <span class="alert-tag">Air Quality</span>
+              <span class="alert-tag">Health</span>
+            </div>
+        </article>
+      </div>
+      <p class="alerts-empty">(These are illustrative alerts. Live feed integration pending.)</p>
     </section>
   </main>
 
