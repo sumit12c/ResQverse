@@ -1,24 +1,51 @@
 require('dotenv').config();
 const express = require('express');
+const fs = require('fs');
 const mongoose = require('mongoose');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const app = express();
+// Trust first proxy (e.g., Render, Heroku) so secure cookies and req.secure work
+app.set('trust proxy', 1);
 // Firebase Admin (for verifying ID tokens from client Firebase Auth)
 let admin;
 try {
   admin = require('firebase-admin');
   if (!admin.apps.length) {
-    // Uses Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS env var)
-    admin.initializeApp();
+    // Prefer explicit service account JSON provided via env var
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    } else {
+      // Fallback to local file if present, else to ADC (GOOGLE_APPLICATION_CREDENTIALS)
+      const saPath = path.join(__dirname, 'serviceAccountKey.json');
+      if (fs.existsSync(saPath)) {
+        const serviceAccount = require(saPath);
+        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      } else {
+        // Uses Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS env var)
+        admin.initializeApp();
+      }
+    }
   }
   console.log('✅ Firebase Admin initialized');
 } catch (err) {
   console.warn('⚠️ Firebase Admin not initialized. Provide service account credentials to enable Firebase Auth bridging. Error:', err.message);
 }
 const PORT = process.env.PORT || 3000;
+
+// Basic startup warnings to help diagnose missing env vars on deployed environments
+if (!process.env.MONGODB_URI) {
+  console.warn('⚠️ Warning: MONGODB_URI not set. Database connection will fail without it.');
+}
+if (!process.env.SESSION_SECRET) {
+  console.warn('⚠️ Warning: SESSION_SECRET not set. Using fallback secret — set a strong secret in production.');
+}
+if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+  console.warn('⚠️ Warning: ADMIN_USERNAME or ADMIN_PASSWORD not set. Admin login will not work on deployed site until configured.');
+}
 
 // MongoDB connection - remove deprecated options
 mongoose.connect(process.env.MONGODB_URI)
