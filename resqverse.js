@@ -214,7 +214,7 @@ app.post('/register', async (req, res) => {
     
     res.json({ 
       success: true, 
-      message: '✅ Registered successfully! Redirecting to dashboard...',
+      message: '✅ Registered succesfully! Redirecting to dashboard...',
       redirect: '/dashboard'
     });
   } catch (error) {
