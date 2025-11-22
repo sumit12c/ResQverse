@@ -210,6 +210,16 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
+    // Check hardcoded admin from .env FIRST
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+      req.session.isAdmin = true;
+      req.session.userId = null;
+      req.session.user = { username: username, role: 'admin' };
+      console.log('✅ Admin login successful');
+      return res.json({ success: true, message: '✅ Admin login successful. Redirecting...', redirect: '/admin' });
+    }
+
+    // Then check database for regular users
     const user = await User.findOne({ username });
 
     if (!user) {
@@ -222,10 +232,10 @@ app.post('/login', async (req, res) => {
       return res.json({ success: false, message: '⚠️ Invalid username or password.' });
     }
 
-    // Set session
     req.session.userId = user._id;
+    req.session.user = { username: user.username, role: 'user' };
 
-    res.json({ success: true, message: '✅ Login successful. Redirecting to dashboard...' });
+    res.json({ success: true, message: '✅ Login successful. Redirecting to dashboard...', redirect: '/dashboard' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: '❌ Error logging in.' });
@@ -321,3 +331,38 @@ app.route('/api/user/pincode')
       res.status(500).json({ success: false, message: 'Server error updating pincode' });
     }
   });
+
+// GET: Fetch all alerts (for users to see alerts for their pincode)
+app.get('/api/alerts', requireAuthApi, (req, res) => {
+  const alerts = req.app.locals.alerts || [];
+  return res.json({ success: true, alerts });
+});
+
+// Ensure admin middleware
+function ensureAdmin(req, res, next) {
+  if (req.session && req.session.isAdmin) return next();
+  return res.redirect('/log');
+}
+
+// Admin panel route
+app.get('/admin', ensureAdmin, (req, res) => {
+  const user = req.session.user || { username: 'admin' };
+  const alerts = req.app.locals.alerts || [];
+  res.render('admin', { user, alerts });
+});
+
+// POST: Create alert from admin panel
+app.post('/admin/alerts', ensureAdmin, (req, res) => {
+  const { pincode, type, level = 'info', message } = req.body;
+  if (!pincode || !/^\d{6}$/.test(pincode)) {
+    return res.status(400).json({ success: false, message: 'Invalid pincode' });
+  }
+  if (!type || !message) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+  const alert = { pincode, type, level, message, createdAt: new Date() };
+  if (!req.app.locals.alerts) req.app.locals.alerts = [];
+  req.app.locals.alerts.unshift(alert);
+  if (req.app.locals.alerts.length > 200) req.app.locals.alerts.pop();
+  return res.json({ success: true, alert });
+});

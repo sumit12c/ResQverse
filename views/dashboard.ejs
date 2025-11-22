@@ -249,55 +249,14 @@
       </div>
     </section>
     
-    <!-- Static sample Emergency Alerts (no live backend calls) -->
+    <!-- Real Emergency Alerts from Server -->
     <section class="alerts-section" aria-labelledby="alertsHeading">
       <div class="alerts-header">
         <h2 id="alertsHeading" class="section-title" style="margin:0">Emergency Alerts</h2>
-        <span style="font-size:.6rem; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); font-weight:600;">Sample Data</span>
       </div>
-      <div class="alerts-grid" role="list">
-        <!-- Alert 1 -->
-        <article class="alert-card" role="listitem" style="--c1:#f59e0b;--c2:#eab308;">
-          <div class="alert-meta">
-            <span class="alert-level level-advisory">Advisory</span>
-            <time datetime="2025-02-10T06:30:00Z">10 Feb • 12:00 IST</time>
-          </div>
-          <h3 class="alert-title">Minor Tremors Recorded</h3>
-          <p class="alert-body">Light seismic activity detected. No structural risk expected, but secure loose objects and review your Drop-Cover-Hold plan.</p>
-          <div class="alert-tags">
-            <span class="alert-tag">Earthquake</span>
-            <span class="alert-tag">Awareness</span>
-          </div>
-        </article>
-        <!-- Alert 2 -->
-        <article class="alert-card" role="listitem" style="--c1:#0ea5e9;--c2:#0284c7;">
-          <div class="alert-meta">
-            <span class="alert-level level-watch">Watch</span>
-            <time datetime="2025-02-10T04:15:00Z">10 Feb • 10:45 IST</time>
-          </div>
-            <h3 class="alert-title">Flood Watch – Low River Rise</h3>
-            <p class="alert-body">Upstream rainfall may elevate water levels in the next 6–8 hours. Move valuables above ground level and avoid low underpasses.</p>
-            <div class="alert-tags">
-              <span class="alert-tag">Flood</span>
-              <span class="alert-tag">Preparation</span>
-            </div>
-        </article>
-        <!-- Alert 3 -->
-        <article class="alert-card" role="listitem" style="--c1:#ef4444;--c2:#f97316;">
-          <div class="alert-meta">
-            <span class="alert-level level-critical">Critical</span>
-            <time datetime="2025-02-10T03:40:00Z">10 Feb • 10:10 IST</time>
-          </div>
-            <h3 class="alert-title">Industrial Fire – Air Quality Risk</h3>
-            <p class="alert-body">Smoke from an industrial fire drifting toward residential blocks. Close windows, switch off ventilation intakes, and keep masks ready if outdoors.</p>
-            <div class="alert-tags">
-              <span class="alert-tag">Fire</span>
-              <span class="alert-tag">Air Quality</span>
-              <span class="alert-tag">Health</span>
-            </div>
-        </article>
+      <div class="alerts-grid" id="alertsContainer" role="list">
+        <p class="alerts-empty">📭 No alerts for now</p>
       </div>
-      <p class="alerts-empty">(These are illustrative alerts. Live feed integration pending.)</p>
     </section>
   </main>
 
@@ -784,6 +743,87 @@
       });
     }
 
+    // Fetch and render alerts for user's pincode
+    async function loadUserAlerts() {
+      try {
+        const userPincodeEl = document.querySelector('.user-location');
+        if (!userPincodeEl) return;
+        
+        // Extract pincode from "Location: state, pincode"
+        const locationText = userPincodeEl.textContent || '';
+        const pincodeMatch = locationText.match(/(\d{6})/);
+        const userPincode = pincodeMatch ? pincodeMatch[1] : null;
+        
+        if (!userPincode || userPincode === '000000') {
+          // No pincode set yet
+          const container = document.getElementById('alertsContainer');
+          if (container) {
+            container.innerHTML = '<p class="alerts-empty">📭 Complete your profile to see alerts</p>';
+          }
+          return;
+        }
+
+        // Fetch all alerts from server
+        const response = await fetch('/api/alerts', {
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin'
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch alerts');
+        
+        const data = await response.json();
+        const alerts = Array.isArray(data.alerts) ? data.alerts : [];
+
+        // Filter alerts for user's pincode
+        const userAlerts = alerts.filter(alert => alert.pincode === userPincode);
+
+        const container = document.getElementById('alertsContainer');
+        if (!container) return;
+
+        if (userAlerts.length === 0) {
+          container.innerHTML = '<p class="alerts-empty">📭 No alerts for now</p>';
+          return;
+        }
+
+        // Render alerts
+        container.innerHTML = userAlerts.map(alert => {
+          const date = new Date(alert.createdAt);
+          const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+          const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+          
+          // Color mapping by level
+          const colorMap = {
+            'danger': { c1: '#ef4444', c2: '#f97316', level: 'Critical' },
+            'warning': { c1: '#f59e0b', c2: '#eab308', level: 'Watch' },
+            'info': { c1: '#0ea5e9', c2: '#0284c7', level: 'Advisory' }
+          };
+          
+          const colors = colorMap[alert.level] || colorMap['info'];
+          
+          return `
+            <article class="alert-card" role="listitem" style="--c1:${colors.c1};--c2:${colors.c2};">
+              <div class="alert-meta">
+                <span class="alert-level level-${alert.level === 'danger' ? 'critical' : alert.level === 'warning' ? 'watch' : 'advisory'}">${colors.level}</span>
+                <time>${dateStr} • ${timeStr}</time>
+              </div>
+              <h3 class="alert-title">${alert.type.charAt(0).toUpperCase() + alert.type.slice(1)} Alert</h3>
+              <p class="alert-body">${alert.message}</p>
+              <div class="alert-tags">
+                <span class="alert-tag">${alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}</span>
+                <span class="alert-tag">${alert.level.charAt(0).toUpperCase() + alert.level.slice(1)}</span>
+              </div>
+            </article>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error('Error loading alerts:', error);
+        const container = document.getElementById('alertsContainer');
+        if (container) {
+          container.innerHTML = '<p class="alerts-empty">❌ Unable to load alerts</p>';
+        }
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       buildModuleCards();
       initThemeToggle();
@@ -791,6 +831,7 @@
       initYear();
       initUserDropdown();
       styleTranslateDropdown();
+      loadUserAlerts();
       // Prompt for missing pincode
       const userPincodeEl = document.getElementById('userEmail')?.parentElement?.querySelector('.user-location');
       const rawLocation = userPincodeEl ? userPincodeEl.textContent : '';

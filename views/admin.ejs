@@ -1,160 +1,165 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>Admin | ResQverse</title>
-	<style>
-		:root { --bg:#0f1419; --surface:#1d262f; --border:#2c3944; --text:#f5f7fa; --accent:#6366f1; --radius:14px; --warn:#f59e0b; --danger:#ef4444; --ok:#10b981; font-family: system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif; }
-		body { margin:0; background:var(--bg); color:var(--text); display:flex; min-height:100vh; }
-		header { padding:1rem 1.4rem; background:#151c22; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
-		h1 { font-size:1.1rem; margin:0; letter-spacing:.5px; }
-		main { flex:1; padding:1.4rem; max-width:1100px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:1.6rem; }
-		.card { background:var(--surface); border:1px solid var(--border); padding:1.2rem 1.3rem 1.35rem; border-radius:var(--radius); display:flex; flex-direction:column; gap:.9rem; box-shadow:0 4px 16px -6px rgba(0,0,0,.4); }
-		.grid { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
-		label { font-size:.65rem; text-transform:uppercase; letter-spacing:.09em; font-weight:600; opacity:.75; display:block; margin-bottom:.35rem; }
-		input, select, textarea { width:100%; background:#121a21; border:1px solid var(--border); color:var(--text); border-radius:10px; padding:.65rem .7rem; font:500 .8rem/1.2 inherit; resize:vertical; }
-		textarea { min-height:90px; }
-		input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(99,102,241,.3); }
-		button { cursor:pointer; font:600 .72rem/1 inherit; letter-spacing:.05em; border-radius:10px; padding:.7rem 1rem; border:1px solid var(--accent); background:var(--accent); color:#fff; display:inline-flex; align-items:center; gap:.4rem; }
-		button.secondary { background:#121a21; color:var(--text); border-color:var(--border); }
-		button.secondary:hover { border-color:var(--accent); }
-		button:hover { filter:brightness(1.08); }
-		.row { display:flex; gap:.9rem; flex-wrap:wrap; }
-		.flex { flex:1; min-width:200px; }
-		.alerts-table { width:100%; border-collapse:collapse; font-size:.7rem; }
-		.alerts-table th, .alerts-table td { padding:.5rem .55rem; border-bottom:1px solid var(--border); text-align:left; }
-		.badge { padding:.25rem .55rem; border-radius:20px; font-size:.55rem; font-weight:600; letter-spacing:.05em; display:inline-block; }
-		.level-info { background:#374151; }
-		.level-warning { background:var(--warn); color:#1a1200; }
-		.level-danger { background:var(--danger); }
-		.status { display:flex; align-items:center; gap:.4rem; font-size:.65rem; }
-		.fade { opacity:.6; }
-		.split { display:grid; gap:1.4rem; grid-template-columns: minmax(0,1fr) 340px; }
-		@media (max-width: 1000px){ .split { grid-template-columns:1fr; } }
-		.log { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#121a21; padding:.6rem .7rem; border-radius:10px; border:1px solid var(--border); font-size:.6rem; max-height:160px; overflow:auto; }
-		.toast { position:fixed; bottom:18px; right:18px; background:#111a22; border:1px solid var(--border); padding:.75rem 1rem; border-radius:12px; font-size:.7rem; display:flex; gap:.6rem; align-items:center; box-shadow:0 6px 22px -6px rgba(0,0,0,.55); animation:fadeIn .25s ease; }
-		@keyframes fadeIn { from { opacity:0; transform:translateY(6px);} to { opacity:1; transform:translateY(0);} }
-	</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin | ResQverse</title>
+    <style>
+        :root { --bg:#0f1419; --surface:#1d262f; --border:#2c3944; --text:#f5f7fa; --accent:#6366f1; --radius:14px; --warn:#f59e0b; --danger:#ef4444; --ok:#10b981; font-family: system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif; }
+        body { margin:0; background:var(--bg); color:var(--text); display:flex; min-height:100vh; flex-direction:column; }
+        header { padding:1rem 1.4rem; background:#151c22; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+        h1 { font-size:1.1rem; margin:0; letter-spacing:.5px; }
+        .logout-btn { background:var(--danger); color:#fff; border:none; padding:.5rem .9rem; border-radius:8px; cursor:pointer; font-size:.7rem; font-weight:600; }
+        .logout-btn:hover { filter:brightness(1.1); }
+        main { flex:1; padding:1.4rem; max-width:1100px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:1.6rem; }
+        .card { background:var(--surface); border:1px solid var(--border); padding:1.2rem 1.3rem 1.35rem; border-radius:var(--radius); display:flex; flex-direction:column; gap:.9rem; box-shadow:0 4px 16px -6px rgba(0,0,0,.4); }
+        label { font-size:.65rem; text-transform:uppercase; letter-spacing:.09em; font-weight:600; opacity:.75; display:block; margin-bottom:.35rem; }
+        input, select, textarea { width:100%; background:#121a21; border:1px solid var(--border); color:var(--text); border-radius:10px; padding:.65rem .7rem; font:500 .8rem/1.2 inherit; resize:vertical; }
+        textarea { min-height:90px; }
+        input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(99,102,241,.3); }
+        button { cursor:pointer; font:600 .72rem/1 inherit; letter-spacing:.05em; border-radius:10px; padding:.7rem 1rem; border:1px solid var(--accent); background:var(--accent); color:#fff; display:inline-flex; align-items:center; gap:.4rem; }
+        button.secondary { background:#121a21; color:var(--text); border-color:var(--border); }
+        button.secondary:hover { border-color:var(--accent); }
+        button:hover { filter:brightness(1.08); }
+        .row { display:flex; gap:.9rem; flex-wrap:wrap; }
+        .flex { flex:1; min-width:200px; }
+        .alerts-table { width:100%; border-collapse:collapse; font-size:.7rem; }
+        .alerts-table th, .alerts-table td { padding:.5rem .55rem; border-bottom:1px solid var(--border); text-align:left; }
+        .badge { padding:.25rem .55rem; border-radius:20px; font-size:.55rem; font-weight:600; letter-spacing:.05em; display:inline-block; }
+        .level-info { background:#374151; color:#fff; }
+        .level-warning { background:var(--warn); color:#1a1200; }
+        .level-danger { background:var(--danger); color:#fff; }
+        .status { font-size:.65rem; }
+        .toast { position:fixed; bottom:18px; right:18px; background:#111a22; border:1px solid var(--border); padding:.75rem 1rem; border-radius:12px; font-size:.7rem; display:flex; gap:.6rem; align-items:center; box-shadow:0 6px 22px -6px rgba(0,0,0,.55); }
+        .empty { font-size:.7rem; opacity:.6; padding:1rem; text-align:center; }
+    </style>
 </head>
 <body>
-	<main>
-		<header style="border-radius:14px;">
-			<h1>Disaster Alert Admin</h1>
-			<div style="display:flex;align-items:center;gap:.6rem;">
-				<span style="font-size:.65rem;opacity:.65;">Signed in as <strong><%= user.username %></strong></span>
-				<a href="/dashboard" style="text-decoration:none;"><button class="secondary" type="button">Dashboard</button></a>
-				<a href="/logout" style="text-decoration:none;"><button class="secondary" type="button">Logout</button></a>
-			</div>
-		</header>
+    <header>
+        <h1>🛡️ ResQverse Admin Panel</h1>
+        <div style="display:flex; gap:.8rem; align-items:center;">
+            <span style="font-size:.75rem; opacity:.7;">Welcome, <strong><%= user.username %></strong></span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </header>
 
-		<div class="split">
-			<section class="card" aria-labelledby="issueTitle">
-				<h2 id="issueTitle" style="margin:0;font-size:.95rem;">Issue New Alert</h2>
-				<form id="alertForm">
-					<div class="row">
-						<div class="flex">
-							<label for="pincode">Pincode</label>
-							<input id="pincode" name="pincode" placeholder="6-digit" maxlength="6" pattern="\d{6}" required />
-						</div>
-						<div class="flex">
-							<label for="type">Emergency Type</label>
-							<select id="type" name="type" required>
-								<option value="">Select type</option>
-								<option>earthquake</option>
-								<option>flood</option>
-								<option>fire</option>
-								<option>cyclone</option>
-								<option>landslide</option>
-								<option>pandemic</option>
-								<option>chemical</option>
-							</select>
-						</div>
-						<div class="flex">
-							<label for="level">Severity</label>
-							<select id="level" name="level">
-								<option value="info">Info</option>
-								<option value="warning">Warning</option>
-								<option value="danger">Danger</option>
-							</select>
-						</div>
-					</div>
-					<div class="row">
-						<div class="flex" style="min-width:100%">
-							<label for="message">Message</label>
-							<textarea id="message" name="message" placeholder="Concise description / instructions" required></textarea>
-						</div>
-					</div>
-					<div style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:.4rem;">
-						<button type="reset" class="secondary">Reset</button>
-						<button type="submit">Publish Alert</button>
-					</div>
-				</form>
-				<div id="formStatus" class="status"></div>
-			</section>
+    <main>
+        <section class="card">
+            <h2 style="margin:0; font-size:.95rem; letter-spacing:.3px;">📢 Broadcast Alert</h2>
+            <form id="alertForm" style="display:flex; flex-direction:column; gap:1rem;">
+                <div class="row">
+                    <div class="flex">
+                        <label>Pincode (6 digits)</label>
+                        <input type="text" name="pincode" placeholder="e.g., 110001" required maxlength="6" />
+                    </div>
+                    <div class="flex">
+                        <label>Disaster Type</label>
+                        <select name="type" required>
+                            <option value="">-- Select --</option>
+                            <option value="earthquake">Earthquake</option>
+                            <option value="flood">Flood</option>
+                            <option value="cyclone">Cyclone</option>
+                            <option value="fire">Fire</option>
+                            <option value="chemical">Chemical Spill</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="flex">
+                        <label>Alert Level</label>
+                        <select name="level" required>
+                            <option value="info">Info</option>
+                            <option value="warning">Warning</option>
+                            <option value="danger">Danger</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label>Message</label>
+                    <textarea name="message" placeholder="Alert message for users..." required></textarea>
+                </div>
+                <div style="display:flex; gap:.6rem;">
+                    <button type="submit">Send Alert</button>
+                    <span id="formStatus" style="font-size:.7rem; align-self:center;"></span>
+                </div>
+            </form>
+        </section>
 
-			<section class="card" aria-labelledby="recentTitle">
-				<h2 id="recentTitle" style="margin:0;font-size:.95rem;">Recent Alerts</h2>
-				<div style="overflow:auto; max-height:480px;">
-					<table class="alerts-table" id="alertsTable">
-						<thead>
-							<tr><th>Time</th><th>Pincode</th><th>Type</th><th>Severity</th><th>Message</th></tr>
-						</thead>
-						<tbody>
-						<% alerts.forEach(a => { %>
-							<tr>
-								<td><%= new Date(a.createdAt).toLocaleTimeString() %></td>
-								<td><%= a.pincode %></td>
-								<td><%= a.type %></td>
-								<td><span class="badge level-<%= a.level %>"><%= a.level %></span></td>
-								<td style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<%= a.message %>"><%= a.message %></td>
-							</tr>
-						<% }) %>
-						</tbody>
-					</table>
-				</div>
-			</section>
-		</div>
+        <section class="card">
+            <h2 style="margin:0; font-size:.95rem; letter-spacing:.3px;">📋 Recent Alerts</h2>
+            <div style="overflow-x:auto;">
+                <table class="alerts-table">
+                    <thead>
+                        <tr>
+                            <th>Pincode</th>
+                            <th>Type</th>
+                            <th>Level</th>
+                            <th>Message</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTable">
+                        <% if (alerts && alerts.length > 0) { %>
+                            <% alerts.forEach(alert => { %>
+                                <tr>
+                                    <td><strong><%= alert.pincode %></strong></td>
+                                    <td><%= alert.type %></td>
+                                    <td><span class="badge level-<%= alert.level %>"><%= alert.level %></span></td>
+                                    <td><%= alert.message %></td>
+                                    <td class="status"><%= new Date(alert.createdAt).toLocaleTimeString() %></td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="5" class="empty">No alerts yet</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 
-		<section class="card" aria-labelledby="apiTitle">
-			<h2 id="apiTitle" style="margin:0;font-size:.85rem;">Integration</h2>
-			<p style="margin:.1rem 0 .6rem;font-size:.65rem;opacity:.75;">Client apps can poll (future route) for matching alerts using pincode & disaster type. WebSocket/Server-Sent Events can be added later.</p>
-			<div class="log" id="debugLog"></div>
-		</section>
-	</main>
+    <script>
+        const form = document.getElementById('alertForm');
+        const statusEl = document.getElementById('formStatus');
+        const tableBody = document.querySelector('#alertsTable');
 
-	<div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            statusEl.textContent = 'Sending...';
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
 
-	<script>
-		const form = document.getElementById('alertForm');
-		const statusEl = document.getElementById('formStatus');
-		const tableBody = document.querySelector('#alertsTable tbody');
-		const logBox = document.getElementById('debugLog');
-		function log(msg){ const line = document.createElement('div'); line.textContent = '['+new Date().toLocaleTimeString()+'] '+msg; logBox.appendChild(line); logBox.scrollTop = logBox.scrollHeight; }
-		function toast(message, ok=true){ const t=document.createElement('div'); t.className='toast'; t.style.borderColor = ok? 'var(--ok)': 'var(--danger)'; t.innerHTML = `<span style="color:${ok?'var(--ok)':'var(--danger)'}">${ok?'✔':'✖'}</span><span>${message}</span>`; document.body.appendChild(t); setTimeout(()=> { t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 2800); }
-		form.addEventListener('submit', async e=>{
-			e.preventDefault();
-			statusEl.textContent = 'Publishing...';
-			const fd = new FormData(form);
-			const data = Object.fromEntries(fd.entries());
-			try {
-				const res = await fetch('/admin/alerts', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
-				const json = await res.json();
-				if(!json.success) throw new Error(json.message || 'Failed');
-				statusEl.textContent = 'Published';
-				toast('Alert published');
-				form.reset();
-				// Prepend new alert to table
-				const tr = document.createElement('tr');
-				tr.innerHTML = `<td>${new Date(json.alert.createdAt).toLocaleTimeString()}</td><td>${json.alert.pincode}</td><td>${json.alert.type}</td><td><span class="badge level-${json.alert.level}">${json.alert.level}</span></td><td style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${json.alert.message}">${json.alert.message}</td>`;
-				tableBody.insertBefore(tr, tableBody.firstChild);
-				log('Alert created for ' + json.alert.pincode + ' (' + json.alert.type + ')');
-			} catch(err){
-				statusEl.textContent = 'Error';
-				toast(err.message || 'Error', false);
-				log('Error: ' + err.message);
-			}
-		});
-	</script>
+            try {
+                const res = await fetch('/admin/alerts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    statusEl.textContent = '✅ Alert sent!';
+                    form.reset();
+                    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+                    // Add row to table
+                    const row = tableBody.querySelector('tr:has(td:nth-child(1))');
+                    if (row && row.textContent.includes('No alerts')) row.remove();
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td><strong>${data.pincode}</strong></td>
+                        <td>${data.type}</td>
+                        <td><span class="badge level-${data.level}">${data.level}</span></td>
+                        <td>${data.message}</td>
+                        <td class="status">${new Date().toLocaleTimeString()}</td>
+                    `;
+                    tableBody.insertBefore(newRow, tableBody.firstChild);
+                } else {
+                    statusEl.textContent = '❌ ' + json.message;
+                }
+            } catch (err) {
+                statusEl.textContent = '❌ Error sending alert';
+                console.error(err);
+            }
+        });
+    </script>
 </body>
 </html>

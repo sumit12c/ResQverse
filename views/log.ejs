@@ -599,7 +599,7 @@
         });
 
         // Function to show notification
-        function showNotification(message, isSuccess) {
+        function showNotification(message, isSuccess, redirectUrl) {
             notification.textContent = message;
             notification.className = 'notification';
             notification.classList.add(isSuccess ? 'success' : 'error');
@@ -608,10 +608,10 @@
             setTimeout(() => {
                 notification.classList.remove('show');
                 
-                // If login was successful, redirect to dashboard
-                if (isSuccess && message.includes('Redirecting')) {
+                // If login was successful and has redirect URL, redirect
+                if (isSuccess && redirectUrl) {
                     setTimeout(() => {
-                        window.location.href = '/dashboard';
+                        window.location.href = redirectUrl;
                     }, 1500);
                 }
             }, 3000);
@@ -638,7 +638,7 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        showNotification(data.message, data.success);
+                        showNotification(data.message, data.success, data.redirect);
                     })
                     .catch(error => {
                         showNotification('❌ Network error. Please try again.', false);
@@ -662,18 +662,11 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        showNotification(data.message, data.success);
-    
+                        showNotification(data.message, data.success, data.redirect);
+        
                         // Clear form on successful registration
                         if (data.success) {
                             registerForm.reset();
-        
-                            // Redirect to dashboard if specified
-                            if (data.redirect) {
-                                setTimeout(() => {
-                                    window.location.href = data.redirect;
-                                }, 1500); // Redirect after 1.5 seconds
-                            }
                         }
                     })
                     .catch(error => {
