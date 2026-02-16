@@ -82,8 +82,8 @@ ResQverse/
 
 ## Contributors
 This project was proudly developed by:
-Somil Jain
-Sumit Patel
-Suryansh Asati
+Somil Jain,
+Sumit Patel,
+Suryansh Asati,
 
 **For questions or contributions, open an issue or pull request!**
