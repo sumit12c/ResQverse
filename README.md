@@ -84,6 +84,6 @@ ResQverse/
 This project was proudly developed by:
 Somil Jain,
 Sumit Patel,
-Suryansh Asati,
+Suryansh Asati
 
 **For questions or contributions, open an issue or pull request!**
