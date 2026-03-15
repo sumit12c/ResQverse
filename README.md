@@ -1,5 +1,7 @@
 # ResQverse
 
+[![View Site](https://img.shields.io/badge/View_Site-%23E4405F.svg?logo=google-chrome&logoColor=white)](https://resqverse.onrender.com)
+
 A campus disaster preparedness and alert platform for Indian educational institutions. Includes:
 - User registration/login (with Firebase Auth and Google Sign-In)
 - Personalized dashboard with disaster training modules
