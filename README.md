@@ -2,6 +2,9 @@
 
 [![View Site](https://img.shields.io/badge/View_Site-%23E4405F.svg?logo=google-chrome&logoColor=white)](https://resqverse.onrender.com)
 
+> [!IMPORTANT]
+> **Note on Deployment:** This project is hosted on Render's free tier. If the site has been inactive, it may take **30-60 seconds** to spin up. Please do not close the tab; it will load shortly!
+
 A campus disaster preparedness and alert platform for Indian educational institutions. Includes:
 - User registration/login (with Firebase Auth and Google Sign-In)
 - Personalized dashboard with disaster training modules
