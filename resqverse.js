@@ -164,7 +164,7 @@ app.get('/comicdash', (req, res) => {
   res.render('comicdash'); 
 });
 app.get('/simulation', (req, res) => {
-  res.render('simulation'); 
+  res.render('game2d'); 
 });
 
 
@@ -180,27 +180,7 @@ _                                                _
                           */
 
    
-app.get('/aftershock', (req, res) => {
-  res.render('aftershock'); 
-});
-app.get('/chemicalspill', (req, res) => {
-  res.render('chemicalspill'); 
-});
-app.get('/cyclone', (req, res) => {
-  res.render('cyclone'); 
-});
-app.get('/earthquake', (req, res) => {
-  res.render('earthquake'); 
-});
-app.get('/flood', (req, res) => {
-  res.render('flood'); 
-});
-app.get('/fire', (req, res) => {
-  res.render('fire'); 
-});
-app.get('/lockdown', (req, res) => {
-  res.render('lockdown'); 
-});
+
 
 /* comics games routes */
 app.get('/Caftershock', (req, res) => {
