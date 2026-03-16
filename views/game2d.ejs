@@ -21,6 +21,18 @@ canvas { display:block; image-rendering:pixelated; }
 }
 #crossBtn:hover { background:rgba(220,50,50,0.5); transform:scale(1.1); }
 
+/* Fullscreen button */
+#fullscreenBtn {
+  position:fixed; top:16px; left:16px; z-index:999;
+  width:42px; height:42px; border-radius:50%;
+  background:rgba(100,150,255,0.25); border:2px solid rgba(100,150,255,0.6);
+  color:#6699ff; font-size:18px; font-weight:900; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(8px); transition:all 0.2s;
+}
+#fullscreenBtn:hover { background:rgba(100,150,255,0.5); transform:scale(1.1); }
+#fullscreenBtn.active { background:rgba(100,255,150,0.4); color:#66ff99; border-color:rgba(100,255,150,0.8); }
+
 /* Mobile controls */
 #mobile-ui {
   position:fixed; bottom:0; left:0; right:0; z-index:500;
@@ -54,6 +66,7 @@ canvas { display:block; image-rendering:pixelated; }
 </head>
 <body>
 <div id="game-container">
+  <button id="fullscreenBtn" title="Toggle Fullscreen">⛶</button>
   <button id="crossBtn" onclick="window.location.href='/dashboard'">✕</button>
   <div id="mobile-ui">
     <div class="joy-wrap">
@@ -5815,6 +5828,53 @@ const config={
 };
 
 const game=new Phaser.Game(config);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FULLSCREEN BUTTON FUNCTIONALITY
+// ─────────────────────────────────────────────────────────────────────────────
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+function toggleFullscreen(){
+  const elem = document.documentElement;
+  
+  if(!document.fullscreenElement){
+    // Enter fullscreen
+    if(elem.requestFullscreen) elem.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+    else if(elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+    else if(elem.mozRequestFullScreen) elem.mozRequestFullScreen();
+    else if(elem.msRequestFullscreen) elem.msRequestFullscreen();
+  } else {
+    // Exit fullscreen
+    if(document.exitFullscreen) document.exitFullscreen();
+    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if(document.mozCancelFullScreen) document.mozCancelFullScreen();
+    else if(document.msExitFullscreen) document.msExitFullscreen();
+  }
+}
+
+// Update button appearance when fullscreen changes
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+document.addEventListener('msfullscreenchange', updateFullscreenButton);
+
+function updateFullscreenButton(){
+  if(document.fullscreenElement){
+    fullscreenBtn.classList.add('active');
+    fullscreenBtn.title = 'Exit Fullscreen (ESC)';
+  } else {
+    fullscreenBtn.classList.remove('active');
+    fullscreenBtn.title = 'Toggle Fullscreen';
+  }
+}
+
+// Click handler for fullscreen button
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+// Listen for ESC key to sync button state (browser handles ESC automatically)
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') setTimeout(updateFullscreenButton, 100);
+});
 </script>
 </body>
 </html>
